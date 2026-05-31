@@ -1,0 +1,3332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>TSM Auto v3.0</title>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+:root {
+    /* Отступы */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+
+    /* Размеры */
+    --input-height: 40px;
+    --radius-sm: 8px;          /* ← БЫЛО --radius, теперь явно "маленький" */
+    --radius-pill: 999px;      /* ← НОВОЕ: полукруглые края */
+    --radius-circle: 50%;      /* ← НОВОЕ: идеально круглые */
+    --radius-lg: 20px;
+    --container-width: 780px;
+
+    /* Цвета */
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --bg: #f0f2f5;
+    --card-bg: #ffffff;
+    --text: #1a1a2e;
+    --text-muted: #94a3b8;
+    --border: #e2e8f0;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+
+    /* Шрифт */
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ===== СБРОС ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+* {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+
+}
+
+/* ===== ТИПОГРАФИКА ===== */
+.t-md { font-size: 14px; font-weight: 600; color: var(--text); }
+.t-sm { font-size: 12px; color: var(--text-muted); }
+.t-tt { font-size: 12px; color: var(--text); }
+.t-ttt { font-size: 12px; font-weight: 600; color: var(--text); }
+.t-accent { font-size: 14px; font-weight: 600; color: var(--success); }
+.t-price { font-size: 22px; font-weight: 800; color: var(--success); }
+
+/* ===== ХЕДЕР ===== */
+.app-header {
+    background: var(--text);
+    color: #fff;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-md);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.app-header .logo { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: var(--space-sm); }
+.app-header .logo i { color: var(--primary); font-size: 18px; }
+.app-header .logo span { color: var(--primary); font-size: 14px; }
+.app-header .user-area { display: flex; align-items: center; gap: var(--space-md); font-size: 13px; }
+.app-header .user-area .role { color: var(--text-muted); font-size: 11px; }
+
+
+.btn-logout {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+.btn-logout:hover { background: var(--danger); }
+
+/* ===== ТАБЫ (iOS segmented control) ===== */
+.tab-bar {
+    position: sticky;
+    top: 48px;
+    z-index: 99;
+    background: transparent;
+    padding: 10px 6px;
+    border-bottom: none;
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+
+/* Фон табов — контрастный с бордером и тенью */
+.tab-bar-inner {
+    position: relative;
+    display: flex;
+    background: rgba(240, 242, 245, 0.4);      /* ← темнее (0.6 вместо 0.4) */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border: 2px solid var(--border);            /* ← ДОБАВЛЕН бордер */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* ← ДОБАВЛЕНА тень */
+    border-radius: var(--radius-pill);
+    padding: 4px;
+    flex: 1;
+    min-width: max-content;
+    gap: 4px;
+}
+
+/* Ползунок — усиленная тень */
+.tab-indicator {
+    position: absolute;
+    top: 4px;
+    left: 1px;
+    height: calc(100% - 8px);
+    background: var(--card-bg);
+    border-radius: var(--radius-pill);
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.15),        /* ← ещё сильнее */
+        0 2px 6px rgba(0, 0, 0, 0.10);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.tab-btn {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-width: 60px;
+    padding: 0 16px;
+    height: var(--input-height);
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.4);                        /* ← БЫЛО var(--text-muted), стало темнее */
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tab-btn:hover {
+    color: var(--primary);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    transform: scale(1.1);                     /* ← ДОБАВЛЕНО: активная кнопка на 5% больше */
+}
+
+.tab-btn .tab-text {
+    display: inline;
+}
+
+.tab-btn.admin-only.hidden {
+    display: none;
+}
+
+/* Мобильная адаптация — только иконки */
+@media (max-width: 640px) {
+    .tab-bar {
+        padding: 8px 4px;
+    }
+    .tab-btn .tab-text { display: none; }
+    .tab-btn {
+        font-size: 18px;
+        min-width: 48px;
+        padding: 0;
+        height: var(--input-height);
+    }
+}
+
+/* ===== КОНТЕЙНЕР ===== */
+.container { max-width: var(--container-width); margin: 0 auto; padding: var(--space-md); }
+
+/* ===== КАРТОЧКА ===== */
+.card {
+    background: var(--card-bg);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid var(--border);
+}
+.card > :last-child { margin-bottom: 0; }
+.card-details { padding: 0; overflow: hidden; }
+
+/* ===== ФОРМЫ ===== */
+input, select, textarea {
+    width: 100%;
+    padding: 0 var(--space-md);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-pill);   /* ← БЫЛО: var(--radius) */
+    font-size: 14px;
+    background: #f8fafc;
+    outline: none;
+    height: var(--input-height);
+}
+textarea {
+    height: auto;
+    padding: var(--space-sm) var(--space-md);
+    min-height: 64px;
+    resize: vertical;
+    border-radius: var(--radius-sm);   /* textarea остаётся квадратной — она многострочная */
+}
+input:focus, select:focus, textarea:focus { border-color: var(--primary); background: #fff; }
+label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: var(--space-xs); }
+.form-group { margin-bottom: var(--space-sm); }
+
+/* ===== КНОПКИ ===== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 var(--space-md);
+    font-size: 13px;
+    font-weight: 600;
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--bg);
+    color: var(--text-muted);
+    border-color: var(--border);
+    height: var(--input-height);
+}
+.btn:hover { background: #fff; border-color: var(--primary); color: var(--text); }
+.btn:active { transform: scale(0.98); }
+
+/* ← ИЗМЕНЕНО: все синие кнопки теперь pill */
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    border-radius: var(--radius-pill);   /* ← ДОБАВЛЕНО */
+}
+.btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+
+.btn-success { background: var(--success); color: #fff; border-color: var(--success); border-radius: var(--radius-pill); }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); border-radius: var(--radius-pill); }
+
+.btn-sm { padding: 0 var(--space-sm); font-size: 12px; height: 32px; }
+.btn-month { width: var(--input-height); height: var(--input-height); padding: 0; font-size: 16px; border-radius: var(--radius-circle); }   /* ← ДОБАВЛЕНО pill/circle */
+
+/* ===== КАРТОЧКИ С БОЛЬШИМ РАДИУСОМ (акцентные) ===== */
+.card-accent {
+    border-radius: 20px;   /* ← тот же радиус, что у карточки месяца */
+}
+
+/* ===== КНОПКИ +/− (круглые) ===== */
+.btn.qty-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: var(--radius-circle);
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.btn.qty-btn:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+
+@media (max-width: 640px) {
+    .btn.qty-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+}
+
+/* ===== ГРИДЫ ===== */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-md); }
+
+.stat-box {
+    text-align: center;
+    padding: var(--space-md);
+    background: #f8fafc;
+    border-radius: var(--radius-sm);   /* ← БЫЛО: var(--radius) */
+    border: 1px solid var(--border);
+}
+.stat-box .num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+}
+.stat-box .lbl {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: var(--space-xs);
+}
+
+/* Мобильная адаптация */
+@media (max-width: 640px) {
+    .stats-row { gap: var(--space-xs); }
+    .stats-item { padding: var(--space-xs); }
+    .stats-item .num { font-size: 18px; }
+    .stats-item .lbl { font-size: 10px; }
+}
+
+/* ===== ДАШБОРД: КАРТОЧКА МЕСЯЦА ===== */
+.dash-month-card {
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+    border-radius: var(--radius-lg);   /* ← НОВОЕ: большой радиус для акцентной карточки */
+}
+
+.dash-month-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: center;
+    padding: var(--space-sm);  /* ← БЫЛО var(--space-sm), СТАЛО var(--space-md) */
+    background: var(--card-bg);
+    gap: var(--space-sm);
+}
+.dash-month-left { display: flex; flex-direction: column; gap: 2px; }
+.dash-month-label { font-size: 16px; font-weight: 700; color: var(--text); }
+.dash-month-count { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.dash-month-right { display: flex; flex-direction: column; gap: 2px; text-align: right; }
+.dash-month-revenue { font-size: 16px; font-weight: 700; color: var(--success); }
+.dash-month-average { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+.dash-month-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-left: var(--space-xs);
+    padding-left: var(--space-sm);
+    border-left: 2px solid var(--border);
+    flex-shrink: 0;
+}
+
+.dash-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border);
+    background: var(--card-bg);
+}
+.dash-stats-row:last-child { border-bottom: none; }
+.dash-stats-row.clickable { cursor: pointer; }
+.dash-stats-row.clickable:active { background: var(--bg); }
+.dash-stats-label { font-size: 14px; font-weight: 500; color: var(--text); }
+.dash-stats-value { font-size: 15px; font-weight: 700; color: var(--primary); }
+.dash-stats-value.success { color: var(--success); }
+.dash-stats-row.section-header {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+}
+.dash-stats-row.section-header .dash-stats-label {
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+/* ===== ДАШБОРД: КАРТОЧКА ЗАРПЛАТЫ ===== */
+.dash-salary-card {
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+}
+
+/* ===== МОБИЛЬНАЯ АДАПТАЦИЯ ===== */
+@media (max-width: 640px) {
+    .container { padding: var(--space-sm); }
+
+    /* Карточки */
+    .card {
+        margin-bottom: var(--space-sm);
+    }
+    .card-details { padding: 0; }
+
+    /* Заголовки карточек */
+    .detail-summary { padding: var(--space-sm) var(--space-sm); }
+    .dash-stats-row { padding: var(--space-sm) var(--space-sm); }
+
+    /* Дашборд */
+    .dash-month-row { padding: var(--space-sm); gap: var(--space-xs); }
+    .dash-month-label, .dash-month-revenue { font-size: 16px; font-weight: 800; }
+    .dash-month-count, .dash-month-average { font-size: 13px; }
+
+    /* Формы */
+    .new-order-row { grid-template-columns: 1fr; gap: var(--space-sm); }
+    .grid2, .grid3 { grid-template-columns: 1fr; gap: var(--space-sm); }
+
+
+    /* Хедер */
+    .app-header .user-area .role { display: none; }
+    .app-header { padding: 0 var(--space-sm); }
+
+
+
+    /* Текст заказа */
+    .order-text-block { padding: var(--space-sm); }
+
+    /* Экспандеры */
+    .expander summary { padding: var(--space-sm); }
+    .expander .content { padding: var(--space-sm); }
+}
+
+
+/* ===== НОВЫЙ ЗАКАЗ: КАРТОЧКА КЛИЕНТ/АВТО/ДАТА ===== */
+.new-order-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.new-order-row {
+    display: grid;
+    grid-template-columns: 1fr 40px 90px;   /* ← БЫЛО: 1fr auto auto */
+    align-items: center;
+    padding: 6px var(--space-sm);
+    gap: var(--space-sm);
+}
+
+/* Колонка 3: Дата или навигация — фиксированная ширина */
+.new-order-date {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+    white-space: nowrap;
+    min-width: 90px;                       /* ← фиксированная ширина */
+    width: 90px;                           /* ← ДОБАВЛЕНО */
+}
+
+.new-order-nav {
+    display: flex;
+    gap: var(--space-xs);
+    min-width: 90px;                        /* ← 36+8+36=80 + запас */
+    width: 90px;                            /* ← ДОБАВЛЕНО: та же ширина что и дата */
+    justify-content: center;
+}
+
+
+
+/* Колонка 1: Поле ввода (клиент/авто) */
+.new-order-field {
+    min-width: 0;
+}
+
+.new-order-field select,
+.new-order-field input {
+    width: 100%;
+    height: var(--input-height);
+    margin: 0;
+}
+
+.new-order-field .manual-input {
+    display: none;
+}
+
+.new-order-field.manual-mode select {
+    display: none;
+}
+
+.new-order-field.manual-mode .manual-input {
+    display: block;
+}
+
+/* Кнопка режима ✏️ — круглая */
+.new-order-mode-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 14px;
+    border-radius: var(--radius-circle) !important;   /* ← круглая, override pill */
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .new-order-row {
+        grid-template-columns: 1fr 36px 76px;  /* ← пропорционально */
+        padding: 6px 12px;
+        gap: 8px;
+    }
+    .new-order-mode-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+    .new-order-date {
+        font-size: 13px;
+        min-width: 76px;
+        width: 76px;                        /* ← ДОБАВЛЕНО */
+    }
+    .new-order-nav {
+        min-width: 76px;                    /* ← 32+8+32=72 + запас */
+        width: 76px;                        /* ← ДОБАВЛЕНО */
+    }
+}
+
+
+
+/* ===== ЧИПЫ РАБОТ И ЗАПЧАСТЕЙ ===== */
+.chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-size: 14px;              /* ← БЫЛО ~14px (наследовалось) */
+    line-height: 1.3;
+}
+
+.chip .muted {
+    font-size: 11px;              /* ← цена/нормочасы */
+    opacity: 0.75;
+    white-space: nowrap;
+}
+
+.chip:active {
+    background: var(--bg);
+}
+
+.chip.selected {
+    background: #e6f4ff;
+    border-color: var(--primary);
+}
+
+/* Счётчик — ПРИЖИМАЕТСЯ к правому краю */
+.chip-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    flex-shrink: 0;
+    visibility: hidden;
+    margin-left: auto;            /* ← ДОБАВЛЕНО: толкает себя вправо */
+}
+
+.chip.selected .chip-count {
+    visibility: visible;
+}
+
+/* Крестик — автоматически идёт за счётчиком */
+.chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    font-size: 12px;
+    border-radius: var(--radius-circle);
+    cursor: pointer;
+    flex-shrink: 0;
+    visibility: hidden;
+    margin-left: var(--space-xs); /* ← ДОБАВЛЕНО: отступ от счётчика */
+}
+
+.chip.selected .chip-remove {
+    visibility: visible;
+}
+
+.chip-remove:hover,
+.chip-remove:active {
+    background: var(--danger);
+    color: #fff;
+}
+
+
+/* ===== КОНТЕЙНЕР ЧИПОВ ===== */
+.chip-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: var(--space-sm) 0;
+    width: 100%;
+}
+
+.chip-group .chip {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* На десктопе — 2 столбика */
+@media (min-width: 768px) {
+    .chip-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    .chip-group .chip {
+        width: auto;
+    }
+}
+
+/* ===== ЭКСПАНДЕР ===== */
+.expander {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);   /* ← БЫЛО var(--radius) */
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+}
+.expander summary {
+    padding: var(--space-sm) var(--space-md);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    background: var(--bg);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.expander summary::-webkit-details-marker { display: none; }
+.expander .content {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--card-bg);
+}
+
+@media (max-width: 640px) {
+    .chip {
+        padding: 5px 8px;
+        gap: 5px;
+        font-size: 14px;          /* ← на мобильном ещё компактнее */
+    }
+    .chip .muted {
+        font-size: 10px;
+    }
+    .chip-count {
+        min-width: 18px;
+        height: 18px;
+        font-size: 9px;
+        padding: 0 4px;
+        border-radius: 9px;
+    }
+    .chip-remove {
+        width: 18px;
+        height: 18px;
+        font-size: 11px;
+    }
+}
+
+/* ===== СТРОКА ПОИСКА ===== */
+.search-row { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.search-input-wrapper { position: relative; flex: 1; max-width: 200px; }
+.search-input-wrapper input { padding-right: 32px; }
+.search-clear {
+    position: absolute;
+    right: var(--space-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 14px;
+    border: none;
+    background: none;
+    border-radius: var(--radius-circle);   /* ← Круглая */
+    padding: 0;
+    transition: background 0.15s;
+}
+.search-clear:hover {
+    background: var(--bg);
+    color: var(--text);
+}
+.search-count { margin-left: auto; padding-right: var(--space-md); }
+
+/* ===== ЭКСПАНДЕР (МЕСЯЦ) ===== */
+.detail-summary {
+    padding: var(--space-md);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    background: #f8fafc;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;   /* ← БЫЛО var(--radius) */
+}
+.detail-summary::-webkit-details-marker { display: none; }
+.order-count {
+    color: var(--text-muted);
+    font-weight: 400;
+    background: var(--card-bg);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+}
+
+/* ===== ПРОСМОТР ЗАКАЗА ===== */
+.order-text-block {
+    background: #fff;
+    border-radius: var(--radius-sm);   /* ← БЫЛО var(--radius) */
+    padding: var(--space-md);
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    margin-bottom: var(--space-md);
+    cursor: text;
+}
+
+/* ===== КОНТЕКСТНАЯ ПАНЕЛЬ ДЕЙСТВИЙ (внизу экрана) ===== */
+.context-btn-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: transparent;
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom));
+    display: flex;
+    justify-content: center;
+    pointer-events: none;                      /* ← пропускаем клики по пустому месту */
+}
+
+.context-btn-bar-inner {
+    display: flex;
+    background: rgba(240, 242, 245, 0.5);     /* ← чуть плотнее, т.к. внизу */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 2px solid var(--border);
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.10),       /* ← тень снизу экрана */
+        0 2px 8px rgba(0, 0, 0, 0.06);
+    border-radius: var(--radius-pill);
+    padding: 4px;
+    gap: 4px;
+    max-width: var(--container-width);
+    width: 100%;
+    pointer-events: auto;                      /* ← а внутри — принимаем клики */
+    animation: slideUpBar 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUpBar {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Кнопки внутри панели — стиль табов */
+.context-btn {
+    position: relative;
+    flex: 1;
+    min-width: 56px;
+    padding: 0 14px;
+    height: var(--input-height);
+    border: 2px solid var(--border);
+    background: transparent;
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.context-btn:hover {
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.context-btn:active {
+    transform: scale(0.96);
+}
+
+.context-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* Варианты кнопок */
+.context-btn-primary {
+    background: var(--primary);
+    color: #fff;
+}
+.context-btn-primary:hover {
+    background: var(--primary-hover);
+    color: #fff;
+}
+
+.context-btn-danger {
+    color: var(--danger);
+}
+.context-btn-danger:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--danger);
+}
+
+.context-btn-success {
+    color: var(--success);
+}
+.context-btn-success:hover {
+    background: rgba(34, 197, 94, 0.08);
+    color: var(--success);
+}
+
+/* На мобильном — текст скрываем, только иконки */
+@media (max-width: 640px) {
+    .context-btn-bar {
+        padding: 8px 4px calc(8px + env(safe-area-inset-bottom));
+    }
+    .context-btn-bar-inner {
+        padding: 3px;
+        gap: 3px;
+    }
+    .context-btn {
+        font-size: 16px;
+        min-width: 44px;
+        padding: 0 10px;
+    }
+    .context-btn .btn-text {
+        display: none;
+    }
+}
+
+@media (min-width: 641px) {
+    .context-btn .btn-text {
+        display: inline;
+    }
+}
+
+
+/* ===== ИНФОРМАЦИОННАЯ КНОПКА С ИТОГО ===== */
+.context-btn.context-btn-total {
+    flex: 1.2;                         /* ← чуть шире остальных */
+    justify-content: space-between;
+    padding: 0 16px;
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--text);
+    cursor: default;
+}
+
+.context-btn.context-btn-total:hover {
+    background: rgba(0, 0, 0, 0.04);   /* ← не меняется при hover */
+    color: var(--text);
+}
+
+.context-btn.context-btn-total:disabled {
+    opacity: 1;                        /* ← не полупрозрачная */
+    cursor: default;
+}
+
+.context-btn.context-btn-total .total-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.context-btn.context-btn-total .total-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--success);
+}
+
+@media (max-width: 640px) {
+    .context-btn.context-btn-total {
+        padding: 0 12px;
+    }
+    .context-btn.context-btn-total .total-label {
+        font-size: 11px;
+    }
+    .context-btn.context-btn-total .total-value {
+        font-size: 13px;
+    }
+}
+
+
+/* ===== ТОСТ ===== */
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: #fff;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-pill);   /* ← БЫЛО var(--radius), СТАЛО pill (компактный элемент) */
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 9999;
+    animation: fadeInUp 0.3s;
+    max-width: 90%;
+    text-align: center;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.toast.success { border-left: 4px solid var(--success); }
+.toast.error { border-left: 4px solid var(--danger); }
+
+/* ===== УТИЛИТЫ ===== */
+.clickable { cursor: pointer; }
+.info-row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: 1px solid var(--border); }
+.info-row:last-child { border-bottom: none; }
+
+/* ===== АДАПТИВНАЯ ТАБЛИЦА ===== */
+.data-table-adaptive {
+    width: 100%;                 /* ← На десктопе/ландшафте: 85% */
+    margin: 0 auto;            /* ← Центрирование */
+    border-collapse: collapse;
+    font-size: 12px;
+    table-layout: auto;
+}
+
+.data-table-adaptive th,
+.data-table-adaptive td {
+    padding: var(--space-sm);
+    border-bottom: 1px solid var(--border);
+    white-space: normal;       /* ← По умолчанию: перенос разрешён */
+    word-break: break-word;
+    vertical-align: top;
+    text-align: center;
+}
+
+.data-table-adaptive th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;          /* ← ЗАПРЕТ ПЕРЕНОСА в заголовках */
+    word-break: keep-all;         /* ← Слова не рвутся */
+}
+
+.data-table-adaptive tr:hover td {
+    background: #f8fafc;
+}
+
+/* На мобильном портрете: таблица 100% ширины */
+@media (max-width: 640px) {
+    .data-table-adaptive {
+        width: 100%;
+        font-size: 12px;
+    }
+    .data-table-adaptive th,
+    .data-table-adaptive td {
+        padding: 8px 6px;
+        font-size: 12px;
+    }
+}
+
+
+/* ===== АДАПТИВНАЯ ТАБЛИЦА: ШИРИНЫ И СТИЛИ ===== */
+
+/* Обёртка без отступов */
+.table-wrap-no-pad { padding: 0; }
+
+/* Ширины колонок */
+.col-num { width: 60px; }
+.col-date { width: 95px; }
+.col-plate { width: 90px; }
+.col-sum { width: 85px; }
+/* Колонка "Клиент" без ширины — занимает всё свободное место */
+
+/* Выравнивание */
+.col-center { text-align: center; }
+.col-right { text-align: right; }
+.col-left { text-align: left; }
+
+/* По умолчанию для адаптивной таблицы — всё по центру */
+.data-table-adaptive th,
+.data-table-adaptive td {
+    text-align: center;
+}
+
+/* Клиент — выравнивание по левому краю (так удобнее читать длинные названия) */
+.col-client {
+    overflow: hidden;
+}
+
+/* Номер заказа */
+.zn-number {
+    font-size: 12px;
+    color: var(--text);
+}
+
+/* Индикатор статуса (точка) */
+.status-indicator {
+    margin-right: var(--space-xs);
+}
+
+/* Сумма (зелёная, жирная, по правому) */
+.sum-value {
+    color: var(--success);
+    font-weight: 600;
+    text-align: right;
+}
+
+/* Сообщение об ошибке */
+.error-state {
+    color: var(--danger);
+}
+
+
+
+/* ===== ЗАЯВКИ: НАВИГАЦИЯ ===== */
+.date-nav-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px 40px 80px;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+/* Обёртка для input — позволяет сжиматься */
+.date-input-wrap {
+    min-width: 0;          /* ← КЛЮЧЕВОЕ: разрешаем сжиматься */
+    overflow: hidden;      /* ← обрезаем если не влезает */
+    width: 100%;
+}
+
+.date-nav-row input[type="date"] {
+
+
+    width: 90%;             /* 90 вместо 100 помогает !!!!!!!!! так оставлю */
+
+
+    height: var(--input-height);
+    margin: 0;
+    min-width: 0;          /* ← разрешаем сжиматься */
+    font-size: 14px;
+}
+
+.date-today-btn {
+    padding: 0 16px;
+    font-size: 14px;
+    white-space: nowrap;
+    height: var(--input-height);
+}
+
+@media (max-width: 640px) {
+    .date-nav-row {
+        grid-template-columns: minmax(0, 1fr) 36px 36px 72px;
+        gap: 4px;           /* ← уменьшили gap */
+    }
+
+    .date-input-wrap {
+        min-width: 0;
+    }
+
+    .date-nav-row input[type="date"] {
+        font-size: 14px;    /* ← меньше шрифт = уже input */
+        padding: 0 8px;     /* ← меньше padding */
+    }
+
+    .date-today-btn {
+        padding: 0 10px;
+        font-size: 12px;
+    }
+}
+
+/* ===== ЗАЯВКИ: СТАТИСТИКА ===== */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+.stats-item {
+    text-align: center;
+    padding: var(--space-sm);
+    background: var(--bg);
+    border-radius: 20px;   /* ← БЫЛО var(--radius) */
+    border: 1px solid var(--border);
+}
+.stats-item .num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.2;
+}
+.stats-item .lbl {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+/* ===== ЗАЯВКИ: КАРТОЧКА (УНИВЕРСАЛЬНАЯ) ===== */
+.req-card {
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+    border-radius: 20px;
+}
+
+.req-card-row {
+    display: grid;
+    grid-template-columns: 1fr 50px 50px 50px;
+    align-items: center;
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+}
+
+
+
+/* Колонка 1: Текст или поле ввода */
+.req-card-text {
+    min-width: 0;
+}
+
+.req-card-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    -webkit-text-size-adjust: 100%;   /* ← Защита от авто-зума iOS/Android */
+    text-size-adjust: 100%;
+}
+
+.req-card-plates {
+    font-size: 12px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.req-card-select,
+.req-card-input {
+    width: 100%;
+    height: 36px;
+    padding: 0 var(--space-sm);
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.req-card-input {
+    display: none;
+}
+
+.req-card-field.manual-mode .req-card-select {
+    display: none;
+}
+
+.req-card-field.manual-mode .req-card-input {
+    display: block;
+}
+
+/* ===== КНОПКИ В КАРТОЧКАХ (КРУГЛЫЕ, OVERRIDE PILL) ===== */
+/* Все три типа кнопок — идеально круглые */
+.btn.req-card-mode-btn,
+.btn.req-card-btn,
+.btn.req-card-btn-small {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: var(--radius-circle) !important;   /* ← Override pill */
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.btn.req-card-mode-btn {
+    background: var(--bg);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.btn.req-card-btn-confirm {
+    background: var(--success);
+    color: #fff;
+    border-color: var(--success);
+}
+
+.btn.req-card-btn-delete {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+}
+
+/* Колонка 3: Количество или действие */
+.req-card-qty {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    text-align: center;
+    width: 50px;
+}
+
+/* ===== ЗАЯВКИ: КАРТОЧКА ДОБАВЛЕНИЯ ===== */
+.req-add-card {
+    background: #fafbff;
+    border: 2px dashed var(--primary);
+}
+
+/* ===== ЗАЯВКИ: ПУСТОЕ СОСТОЯНИЕ ===== */
+.empty-request {
+    text-align: center;
+    padding: var(--space-lg) var(--space-md);
+    color: var(--text-muted);
+}
+
+.empty-request .title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+/* ===== ЗАЯВКИ: КНОПКИ ОТПРАВКИ ===== */
+.send-request-row {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+}
+
+.send-request-row .btn {
+    flex: 1;
+    height: 40px;
+    font-size: 14px;
+}
+
+/* ===== ЗАЯВКИ: МОДАЛКА ===== */
+.email-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+    animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.email-modal-content {
+    background: var(--card-bg);
+    border-radius: var(--radius-sm);   /* ← БЫЛО var(--radius) */
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.2s;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.email-modal-header {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.email-modal-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Кнопка закрытия модалки ✕ — круглая */
+.email-modal-header .btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: var(--radius-circle);
+}
+
+.email-modal-body {
+    padding: var(--space-sm) 0;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.email-modal-footer {
+    padding: var(--space-md);
+    border-top: 1px solid var(--border);
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);   /* ← БЫЛО var(--radius) */
+}
+
+.recipient-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.recipient-row:hover {
+    background: var(--bg);
+}
+
+.recipient-row:active {
+    background: #f1f5f9;
+}
+
+.recipient-row input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.recipient-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.recipient-info .name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.recipient-info .email {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Мобильная адаптация */
+@media (max-width: 640px) {
+    .stats-row { gap: var(--space-xs); }
+    .stats-item { padding: var(--space-xs); }
+    .stats-item .num { font-size: 18px; }
+    .stats-item .lbl { font-size: 11px; }
+
+    .req-card-row {
+        grid-template-columns: 1fr 36px 44px 36px;
+        padding: 10px 12px;
+        gap: 6px;
+    }
+    .req-card-name { font-size: 14px; }   /* ← одинаковый размер везде */
+    .req-card-plates { font-size: 13px; }
+    .req-card-qty { font-size: 12px; width: 44px; }
+
+    .btn.req-card-mode-btn,
+    .btn.req-card-btn,
+    .btn.req-card-btn-small {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+}
+
+
+
+    </style>
+</head>
+<body>
+
+    <!-- ХЕДЕР -->
+    <header class="app-header">
+        <div class="logo">
+            <i class="fas fa-truck-moving"></i>
+            TSM Auto <span>v3.0</span>
+        </div>
+        <div class="user-area">
+            <span id="headerUserName">Загрузка...</span>
+            <span class="role" id="headerUserRole"></span>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Выйти
+            </button>
+        </div>
+    </header>
+
+    <!-- ТАБЫ -->
+<nav class="tab-bar" id="tabNav">
+    <div class="tab-indicator"></div>
+    <button data-page="new-order" class="tab-btn">
+        <i class="fas fa-plus-circle"></i> <span class="tab-text">Новый</span>
+    </button>
+    <button data-page="dashboard" class="tab-btn active">
+        <i class="fas fa-chart-line"></i> <span class="tab-text">Дашборд</span>
+    </button>
+    <button data-page="orders" class="tab-btn">
+        <i class="fas fa-clipboard-list"></i> <span class="tab-text">Заказы</span>
+    </button>
+    <button data-page="requests" class="tab-btn">
+        <i class="fas fa-boxes"></i> <span class="tab-text">Заявки</span>
+    </button>
+    <button data-page="clients" class="tab-btn">
+        <i class="fas fa-users"></i> <span class="tab-text">Клиенты</span>
+    </button>
+    <button data-page="settings" class="tab-btn admin-only hidden">
+        <i class="fas fa-shield-alt"></i> <span class="tab-text">Админ</span>
+    </button>
+</nav>
+
+    <!-- КОНТЕНТ -->
+    <main class="container" id="mainContent" style="padding-bottom: 80px;">
+        <div class="card"><p class="t-md">Загрузка...</p></div>
+    </main>
+
+
+    <script>
+        // ====== ПРОВЕРКА АВТОРИЗАЦИИ ======
+        const TOKEN = localStorage.getItem('tsm_token');
+        const USER = JSON.parse(localStorage.getItem('tsm_user') || '{}');
+        if (!TOKEN) { window.location.href = '/login'; }
+
+        // ====== API CLIENT ======
+        const API = {
+            async fetch(endpoint, options = {}) {
+                const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}`, ...options.headers };
+                const resp = await fetch(endpoint, { ...options, headers });
+                if (resp.status === 401) { localStorage.clear(); window.location.href = '/login'; throw new Error('Unauthorized'); }
+                if (!resp.ok) { const err = await resp.json().catch(() => ({ detail: 'Ошибка сервера' })); throw new Error(err.detail || `HTTP ${resp.status}`); }
+                return resp.json();
+            },
+            get: (url) => API.fetch(url),
+            post: (url, body) => API.fetch(url, { method: 'POST', body: JSON.stringify(body) }),
+            put: (url, body) => API.fetch(url, { method: 'PUT', body: JSON.stringify(body) }),
+            delete: (url) => API.fetch(url, { method: 'DELETE' }),
+        };
+
+        const fmt = n => new Intl.NumberFormat('ru-RU').format(n) + ' ₽';
+        const toast = (msg, type = 'info') => {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        };
+
+        let currentPage = 'dashboard';
+
+        // ====== НАВИГАЦИЯ ======
+        document.getElementById('tabNav').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const page = btn.dataset.page;
+            if (page) navigate(page);
+        });
+
+        function navigate(page) {
+            const role = USER.role;
+            const access = {
+                admin: ['new-order', 'dashboard', 'orders', 'clients', 'requests'],
+                manager: ['new-order', 'dashboard', 'orders', 'clients', 'requests'],
+                master: ['new-order', 'dashboard', 'orders', 'clients', 'requests'],
+                accountant: ['dashboard', 'orders', 'clients']
+            };
+            const allowed = access[role] || access.master;
+            if (!allowed.includes(page)) page = 'dashboard';
+
+            currentPage = page;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+
+
+            updateTabIndicator();
+
+            switch(page) {
+                case 'new-order': renderNewOrder(); break;
+                case 'dashboard': renderDashboard(); break;
+                case 'orders': renderOrders(); break;
+                case 'clients': renderClients(); break;
+                case 'requests': renderRequests(); break;
+                default: renderDashboard();
+            }
+        }
+
+
+async function renderNewOrder() {
+    const main = document.getElementById('mainContent');
+
+    try {
+        const [clientsData, worksData, partsData, performersData] = await Promise.all([
+            API.get('/api/clients'),
+            API.get('/api/catalogs/works'),
+            API.get('/api/catalogs/parts'),
+            API.get('/api/performers')
+        ]);
+
+        const clients = clientsData.clients || [];
+        const works = worksData.works || [];
+        const parts = partsData.parts || [];
+
+        const groups = { 'Осмотр': [], 'Замена': [], 'С/у': [], 'Восстановление': [], 'Покраска': [], 'Другое': [] };
+        works.forEach(w => {
+            const name = w.name || '';
+            let found = false;
+            for (const prefix of Object.keys(groups)) {
+                if (prefix !== 'Другое' && name.startsWith(prefix)) {
+                    groups[prefix].push(w);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) groups['Другое'].push(w);
+        });
+
+        const today = new Date();
+        const dateStr = today.toISOString().split('T')[0];
+
+        main.innerHTML = `
+            <div class="card card-accent new-order-card">
+                <!-- Строка 1: Клиент + Режим + Дата -->
+                <div class="new-order-row">
+                    <div class="new-order-field" id="client-field">
+                        <select id="new-client" onchange="loadNewOrderVehicles()">
+                            <option value="">-- Клиент --</option>
+                            ${clients.map(c => `<option value="${c.id}">${c.full_name}</option>`).join('')}
+                        </select>
+                        <input type="text" id="new-client-manual" class="manual-input"
+                               placeholder="Клиент вручную">
+                    </div>
+                    <button class="btn new-order-mode-btn" onclick="toggleClientMode()"
+                            title="Режим ввода" id="toggle-client-btn">✏️</button>
+                    <div class="new-order-date" id="new-date-display">${formatDisplayDate(dateStr)}</div>
+                </div>
+
+                <!-- Строка 2: Авто + Режим + Навигация по датам -->
+                <div class="new-order-row">
+                    <div class="new-order-field" id="vehicle-field">
+                        <select id="new-vehicle" disabled>
+                            <option value="">-- Авто --</option>
+                        </select>
+                        <input type="text" id="new-vehicle-manual" class="manual-input"
+                               placeholder="Госномер вручную">
+                    </div>
+                    <button class="btn new-order-mode-btn" onclick="toggleVehicleMode()"
+                            title="Режим ввода" id="toggle-vehicle-btn">✏️</button>
+                    <div class="new-order-nav">
+                        <button class="btn req-card-btn-small" onclick="shiftNewOrderDate(-1)">←</button>
+                        <button class="btn req-card-btn-small" onclick="shiftNewOrderDate(1)">→</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Скрытый input для хранения даты в формате YYYY-MM-DD -->
+            <input type="hidden" id="new-date" value="${dateStr}">
+
+
+            <div class="card">
+                ${Object.entries(groups).map(([prefix, items]) => {
+                    if (!items.length) return '';
+                    return `
+                        <details class="expander">
+                            <summary>${prefix} (${items.length})</summary>
+                            <div class="content chip-group">
+                                ${items.map(w => `
+                                    <div class="chip" data-work-id="${w.id}" data-work-hours="${w.norm_hours}" data-work-rate="${w.rate_rub}"
+                                         onclick="onWorkChipClick(event, ${w.id})">
+                                        ${w.name}
+                                        <span class="muted">${(w.norm_hours*w.rate_rub).toLocaleString('ru-RU')}₽</span>
+                                        <span class="chip-count">0</span>
+                                        <button type="button" class="chip-remove" onclick="onWorkChipRemove(event, ${w.id})">×</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </details>
+                    `;
+                }).join('')}
+            </div>
+
+            <div class="card">
+                <details class="expander">
+                    <summary>Запчасти (${parts.length})</summary>
+                    <div class="content chip-group">
+                        ${parts.map(p => `
+                            <div class="chip" data-part-id="${p.id}" data-part-price="${p.retail_price}" data-part-max="${p.quantity}"
+                                 onclick="onPartChipClick(event, ${p.id})">
+                                ${p.name}
+                                <span class="muted">${p.retail_price}₽ (${p.quantity}${p.unit})</span>
+                                <span class="chip-count">0</span>
+                                <button type="button" class="chip-remove" onclick="onPartChipRemove(event, ${p.id})">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </details>
+            </div>
+
+            <div class="card">
+                <details class="expander">
+                    <summary>Исполнители</summary>
+                    <div class="content">
+                        <div class="grid3">
+                            ${['mechanical','repair','painting'].map(group => {
+                                const labels = {mechanical:'🔧 Слесарные',repair:'🛠️ Ремонтные',painting:'🎨 Покрасочные'};
+                                const perfs = performersData.groups?.[group] || [];
+                                return `
+                                    <div>
+                                        <label>${labels[group]}</label>
+                                        <div class="chip-group">
+                                            ${perfs.map(p => {
+                                                const name = p.full_name || p.name || p;
+                                                return `<div class="chip" data-perf-group="${group}" data-perf="${name}" onclick="toggleNewOrderPerformer(this)">${name}</div>`;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+<div class="context-btn-bar">
+    <div class="context-btn-bar-inner">
+        <button class="context-btn context-btn-total" disabled>
+            <span class="total-label">Итого:</span>
+            <span class="total-value" id="new-order-total">0 ₽</span>
+        </button>
+        <button class="context-btn context-btn-primary" onclick="submitNewOrder()">
+            <i class="fas fa-check"></i> <span class="btn-text">Создать заказ</span>
+        </button>
+    </div>
+</div>
+        `;
+
+        const osmotrId = works.find(w => w.name === 'Осмотр ТС')?.id;
+        window._newOrder = {
+            selectedWorks: osmotrId ? { [osmotrId]: 1 } : {},
+            selectedParts: {},
+            selectedPerformers: { mechanical: [], repair: [], painting: [] },
+            works, parts
+        };
+
+        if (osmotrId) {
+            const chip = document.querySelector(`[data-work-id="${osmotrId}"]`);
+            if (chip) {
+                chip.classList.add('selected');
+                const countEl = chip.querySelector('.chip-count');
+                if (countEl) countEl.textContent = '1';
+            }
+        }
+
+        updateNewOrderTotal();
+    } catch(e) {
+        main.innerHTML = `<div class="card"><p class="t-sm" style="color:var(--danger)">Ошибка: ${e.message}</p></div>`;
+    }
+}
+
+
+
+// ====== РЕЖИМ ВВОДА: КЛИЕНТ ======
+function toggleClientMode() {
+    const field = document.getElementById('client-field');
+    const btn = document.getElementById('toggle-client-btn');
+    const isManual = field.classList.toggle('manual-mode');
+
+    if (isManual) {
+        btn.textContent = '📋';
+        document.getElementById('new-client-manual').focus();
+    } else {
+        btn.textContent = '✏️';
+        document.getElementById('new-client-manual').value = '';
+    }
+}
+
+// ====== РЕЖИМ ВВОДА: АВТО ======
+function toggleVehicleMode() {
+    const field = document.getElementById('vehicle-field');
+    const btn = document.getElementById('toggle-vehicle-btn');
+    const isManual = field.classList.toggle('manual-mode');
+
+    if (isManual) {
+        btn.textContent = '📋';
+        document.getElementById('new-vehicle-manual').focus();
+    } else {
+        btn.textContent = '✏️';
+        document.getElementById('new-vehicle-manual').value = '';
+    }
+}
+
+// ====== ТАП ПО ЧИПУ РАБОТЫ (+1) ======
+function onWorkChipClick(event, id) {
+    // Если клик был по крестику — не обрабатываем
+    if (event.target.closest('.chip-remove')) return;
+
+    const current = window._newOrder.selectedWorks[id] || 0;
+    const newCount = current + 1;
+    window._newOrder.selectedWorks[id] = newCount;
+
+    // Обновляем UI этого чипа
+    const chip = event.currentTarget;
+    chip.classList.add('selected');
+    const countEl = chip.querySelector('.chip-count');
+    if (countEl) countEl.textContent = newCount;
+
+    // Тост
+    const name = chip.textContent.split('\n')[0].trim();
+    toast(`✅ ${name}: ${newCount} шт.`);
+
+    updateNewOrderTotal();
+}
+
+// ====== КРЕСТИК НА ЧИПЕ РАБОТЫ (сброс в 0) ======
+function onWorkChipRemove(event, id) {
+    event.stopPropagation();
+
+    const current = window._newOrder.selectedWorks[id] || 0;
+    if (current === 0) return;
+
+    delete window._newOrder.selectedWorks[id];
+
+    // Обновляем UI этого чипа
+    const chip = event.currentTarget.closest('.chip');
+    chip.classList.remove('selected');
+    const countEl = chip.querySelector('.chip-count');
+    if (countEl) countEl.textContent = '0';
+
+    // Тост
+    const name = chip.textContent.split('\n')[0].trim();
+    toast(`❌ Отменено: ${name}`);
+
+    updateNewOrderTotal();
+}
+
+// ====== ТАП ПО ЧИПУ ЗАПЧАСТИ (+1) ======
+function onPartChipClick(event, id) {
+    if (event.target.closest('.chip-remove')) return;
+
+    const current = window._newOrder.selectedParts[id] || 0;
+    const max = window._newOrder.parts.find(p => p.id === id)?.quantity || 99;
+    const newCount = Math.min(max, current + 1);
+    window._newOrder.selectedParts[id] = newCount;
+
+    // Обновляем UI этого чипа
+    const chip = event.currentTarget;
+    chip.classList.add('selected');
+    const countEl = chip.querySelector('.chip-count');
+    if (countEl) countEl.textContent = newCount;
+
+    // Тост
+    const name = chip.textContent.split('\n')[0].trim();
+    toast(`✅ ${name}: ${newCount} шт.`);
+
+    updateNewOrderTotal();
+}
+
+// ====== КРЕСТИК НА ЧИПЕ ЗАПЧАСТИ (сброс в 0) ======
+function onPartChipRemove(event, id) {
+    event.stopPropagation();
+
+    const current = window._newOrder.selectedParts[id] || 0;
+    if (current === 0) return;
+
+    delete window._newOrder.selectedParts[id];
+
+    // Обновляем UI этого чипа
+    const chip = event.currentTarget.closest('.chip');
+    chip.classList.remove('selected');
+    const countEl = chip.querySelector('.chip-count');
+    if (countEl) countEl.textContent = '0';
+
+    // Тост
+    const name = chip.textContent.split('\n')[0].trim();
+    toast(`❌ Отменено: ${name}`);
+
+    updateNewOrderTotal();
+}
+
+
+function shiftNewOrderDate(delta) {
+    const inp = document.getElementById('new-date');
+    const parts = inp.value.split('-');
+    const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    dt.setDate(dt.getDate() + delta);
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, '0');
+    const d = String(dt.getDate()).padStart(2, '0');
+    inp.value = `${y}-${m}-${d}`;
+
+    // Обновляем отображение даты
+    const display = document.getElementById('new-date-display');
+    if (display) display.textContent = `${d}.${m}.${y}`;
+}
+
+
+
+function toggleNewOrderPerformer(chip) {
+    const group = chip.dataset.perfGroup;
+    const perf = chip.dataset.perf;
+    chip.classList.toggle('selected');
+    const arr = window._newOrder.selectedPerformers[group];
+    const idx = arr.indexOf(perf);
+    idx >= 0 ? arr.splice(idx, 1) : arr.push(perf);
+}
+
+function updateNewOrderTotal() {
+    const { selectedWorks, selectedParts, works, parts } = window._newOrder;
+    let total = 0;
+    Object.entries(selectedWorks).forEach(([id, qty]) => {
+        const w = works.find(x => x.id === parseInt(id));
+        if (w) total += w.norm_hours * w.rate_rub * qty;
+    });
+    Object.entries(selectedParts).forEach(([id, qty]) => {
+        const p = parts.find(x => x.id === parseInt(id));
+        if (p) total += p.retail_price * qty;
+    });
+    const el = document.getElementById('new-order-total');
+    if (el) el.textContent = total.toLocaleString('ru-RU') + ' ₽';
+}
+
+async function loadNewOrderVehicles() {
+    const clientId = document.getElementById('new-client').value;
+    const sel = document.getElementById('new-vehicle');
+    if (!clientId) {
+        sel.disabled = true;
+        sel.innerHTML = '<option value="">Сначала выберите клиента</option>';
+        return;
+    }
+    try {
+        const data = await API.get(`/api/clients/${clientId}`);
+        const vehicles = data.client.vehicles || [];
+        sel.innerHTML = vehicles.length > 0
+            ? vehicles.map(v => `<option value="${v.id}">${v.plate} — ${v.brand} ${v.model}</option>`).join('')
+            : '<option value="">Нет автомобилей</option>';
+        sel.disabled = false;
+    } catch(e) { console.error(e); }
+}
+
+async function submitNewOrder() {
+    // ====== ПОЛУЧАЕМ КЛИЕНТА ======
+    const clientField = document.getElementById('client-field');
+    const isClientManual = clientField.classList.contains('manual-mode');
+
+    let clientId = null;
+    let clientName = '';
+
+    if (isClientManual) {
+        clientName = document.getElementById('new-client-manual').value.trim();
+        if (!clientName) return toast('❌ Введите имя клиента', 'error');
+
+        // Пытаемся найти существующего клиента по имени
+        try {
+            const searchResult = await API.get(`/api/clients?search=${encodeURIComponent(clientName)}`);
+            const found = searchResult.clients?.find(c =>
+                c.full_name.toLowerCase() === clientName.toLowerCase()
+            );
+            if (found) {
+                clientId = found.id;
+            } else {
+                // Создаём нового клиента
+                const newClient = await API.post('/api/clients', {
+                    full_name: clientName,
+                    short_name: clientName
+                });
+                clientId = newClient.client.id;
+                toast(`✅ Клиент "${clientName}" создан`, 'success');
+            }
+        } catch(e) {
+            return toast(`❌ Ошибка с клиентом: ${e.message}`, 'error');
+        }
+    } else {
+        clientId = parseInt(document.getElementById('new-client').value);
+        if (!clientId) return toast('❌ Выберите клиента', 'error');
+    }
+
+    // ====== ПОЛУЧАЕМ АВТО ======
+    const vehicleField = document.getElementById('vehicle-field');
+    const isVehicleManual = vehicleField.classList.contains('manual-mode');
+
+    let vehicleId = null;
+    let vehiclePlate = '';
+
+    if (isVehicleManual) {
+        vehiclePlate = document.getElementById('new-vehicle-manual').value.trim().toUpperCase();
+        if (!vehiclePlate) return toast('❌ Введите госномер', 'error');
+
+        // Создаём авто для найденного/созданного клиента
+        try {
+            const newVehicle = await API.post(`/api/clients/${clientId}/vehicles`, {
+                plate: vehiclePlate,
+                brand: '',
+                model: ''
+            });
+            vehicleId = newVehicle.vehicle?.id || newVehicle.id;
+            toast(`✅ Авто ${vehiclePlate} добавлено`, 'success');
+        } catch(e) {
+            // Возможно, авто уже существует — ищем его
+            try {
+                const clientData = await API.get(`/api/clients/${clientId}`);
+                const existing = clientData.client.vehicles?.find(v =>
+                    v.plate.toUpperCase() === vehiclePlate
+                );
+                if (existing) {
+                    vehicleId = existing.id;
+                } else {
+                    return toast(`❌ Ошибка с авто: ${e.message}`, 'error');
+                }
+            } catch(e2) {
+                return toast(`❌ Ошибка с авто: ${e2.message}`, 'error');
+            }
+        }
+    } else {
+        vehicleId = parseInt(document.getElementById('new-vehicle').value);
+        if (!vehicleId) return toast('❌ Выберите автомобиль', 'error');
+    }
+
+    // ====== ОСТАЛЬНАЯ ЛОГИКА (без изменений) ======
+    const date = document.getElementById('new-date').value;
+    const { selectedWorks, selectedParts, selectedPerformers } = window._newOrder;
+
+    if (Object.keys(selectedWorks).length === 0) return toast('❌ Выберите работы', 'error');
+
+    const payload = {
+        vehicle_id: vehicleId,
+        client_id: clientId,
+        date: date.split('-').reverse().join('.'),
+        work_ids: Object.entries(selectedWorks).map(([id, qty]) => ({ id: parseInt(id), quantity: qty })),
+        material_ids: Object.entries(selectedParts).map(([id, qty]) => ({ id: parseInt(id), quantity: qty })),
+        performer_groups: selectedPerformers
+    };
+
+    try {
+        const result = await API.post('/api/orders', payload);
+        toast(`✅ ${result.message}`, 'success');
+        navigate('orders');
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+async function viewOrder(orderId) {
+    try {
+        const data = await API.get(`/api/orders/${orderId}`);
+        const o = data.order;
+        const text = getOrderText(o);
+        const canEdit = ['admin', 'manager', 'master'].includes(USER.role);
+
+        const main = document.getElementById('mainContent');
+        main.innerHTML = `
+            <div class="order-text-block" onclick="selectOrderText(this)">${text}</div>
+
+            <!-- Контекстная панель действий (внизу) -->
+            <div class="context-btn-bar">
+                <div class="context-btn-bar-inner">
+                    ${canEdit && o.status === 'draft' ? `
+                        <button class="context-btn context-btn-primary" onclick="changeOrderStatus('${o.order_id}', 'in_progress')" title="В работу">
+                            <i class="fas fa-play"></i> <span class="btn-text">В работу</span>
+                        </button>
+                    ` : `
+                        <button class="context-btn" disabled title="В работу">
+                            <i class="fas fa-play"></i> <span class="btn-text">В работу</span>
+                        </button>
+                    `}
+
+                    ${canEdit && o.status === 'in_progress' ? `
+                        <button class="context-btn context-btn-success" onclick="changeOrderStatus('${o.order_id}', 'completed')" title="Завершить">
+                            <i class="fas fa-check"></i> <span class="btn-text">Завершить</span>
+                        </button>
+                    ` : `
+                        <button class="context-btn" disabled title="Завершить">
+                            <i class="fas fa-check"></i> <span class="btn-text">Завершить</span>
+                        </button>
+                    `}
+
+                    <button class="context-btn context-btn-danger"
+                            ${(canEdit && o.status === 'draft') || USER.role === 'admin' ? `onclick="deleteOrder('${o.order_id}')"` : 'disabled'}
+                            title="Удалить">
+                        <i class="fas fa-trash"></i> <span class="btn-text">Удалить</span>
+                    </button>
+
+                    <button class="context-btn" onclick="downloadOrderExcel('${o.order_id}')" title="Скачать">
+                        <i class="fas fa-download"></i> <span class="btn-text">Скачать</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+// Выделение текста по тапу
+window.selectOrderText = function(element) {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+}
+
+function getOrderText(o) {
+    const works = o.work_items || [];
+    const mats = o.material_items || [];
+    const performers = o.performers || {};
+
+    // Исполнители по группам
+    let perf = "👥 ИСПОЛНИТЕЛИ:\n";
+    if (performers.mechanical?.length) perf += `🔧 Слесарные: ${performers.mechanical.join(', ')}\n`;
+    if (performers.repair?.length) perf += `🛠️ Ремонтные: ${performers.repair.join(', ')}\n`;
+    if (performers.painting?.length) perf += `🎨 Покрасочные: ${performers.painting.join(', ')}\n`;
+    if (!performers.mechanical?.length && !performers.repair?.length && !performers.painting?.length) perf += "—\n";
+
+    // Работы
+    let wTxt = `🛠️ РАБОТЫ (${works.length} шт.):\n`;
+    let hM = 0, hR = 0, hP = 0;
+    works.forEach(w => {
+        const qty = w.quantity || 1;
+        wTxt += `• ${w.name}` + (qty > 1 ? ` ×${qty}` : '') + ` (${w.norm_hours} н/ч)\n`;
+        if (w.type === 'mechanical') hM += w.norm_hours * qty;
+        else if (w.type === 'repair') hR += w.norm_hours * qty;
+        else if (w.type === 'painting') hP += w.norm_hours * qty;
+        else hM += w.norm_hours * qty;
+    });
+    if (!works.length) wTxt += "—\n";
+
+    // Нормочасы
+    let hTxt = `⏱️ НОРМОЧАСЫ:\n🔧 Слесарных: ${hM.toFixed(1)} н/ч\n🛠️ Ремонтных: ${hR.toFixed(1)} н/ч\n🎨 Покрасочных: ${hP.toFixed(1)} н/ч\n⏱️ Всего: ${(hM + hR + hP).toFixed(1)} н/ч\n`;
+
+    // Запчасти
+    let mTxt = `📦 ЗАПЧАСТИ (${mats.length} шт.):\n`;
+    mats.forEach(m => mTxt += `• ${m.name} (${m.quantity || 1} ${m.unit || 'шт.'})\n`);
+    if (!mats.length) mTxt += "—\n";
+
+    // Стоимость
+    const wSum = works.reduce((s, w) => s + (w.sum_rub || 0), 0);
+    const mSum = mats.reduce((s, m) => s + ((m.cost_rub || 0) * (m.quantity || 1)), 0);
+    let cTxt = `💰 СТОИМОСТЬ:\n• Работы: ${wSum.toLocaleString('ru-RU')} ₽\n• Запчасти: ${mSum.toLocaleString('ru-RU')} ₽\n• ИТОГО: ${o.total_amount.toLocaleString('ru-RU')} ₽\n`;
+
+    // Зарплата
+    let sTxt = '';
+    if (o.salary && Object.keys(o.salary).length > 0) {
+        sTxt = '\n💵 ЗАРПЛАТА\n' + Object.entries(o.salary)
+            .map(([perf, amt]) => `${perf} ${amt.toLocaleString('ru-RU')}₽`)
+            .join('\n') + '\n';
+    }
+
+    const status = {draft:'Черновик', in_progress:'В работе', completed:'Завершён', cancelled:'Отменён'}[o.status] || o.status;
+
+    return `📋 ЗАКАЗ-НАРЯД №${o.zn_number}  ${status}\n
+🚛 Госномер ТС: ${o.vehicle_plate || '—'}
+📅 Дата: ${formatDisplayDate(o.date)}
+👤 Клиент: ${o.client_name || '—'}\n
+${perf}
+${wTxt}
+${mTxt}
+${hTxt}
+${cTxt}${sTxt}
+✅ TSM Auto v3.0
+📱 ${new Date().toLocaleString('ru-RU')}`;
+}
+
+
+// Универсальная функция для работ и запчастей
+function renderItemChip(item, type, currentCount) {
+    const isSelected = currentCount > 0;
+    const selectedClass = isSelected ? 'selected' : '';
+
+    // Формат текста: "Название - 1.2 н/ч" или "Название - 3500 ₽"
+    const unitText = type === 'work'
+        ? `${item.norm_hours} н/ч`
+        : `${item.retail_price} ₽`;
+
+    return `
+        <div class="item-chip ${selectedClass}"
+             data-type="${type}"
+             data-id="${item.id}"
+             onclick="onItemChipClick(event, '${type}', ${item.id})">
+            <span class="item-chip-text">${item.name} - ${unitText}</span>
+            <span class="item-chip-count">${currentCount}</span>
+            <button type="button" class="item-chip-remove"
+                    onclick="onItemChipRemove(event, '${type}', ${item.id})">×</button>
+        </div>
+    `;
+}
+
+
+
+
+async function renderDashboard() {
+    const main = document.getElementById('mainContent');
+    const now = new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+    window._dashMonth = month;
+    window._dashYear = year;
+
+    main.innerHTML = `
+        <div class="card dash-month-card">
+            <div class="dash-month-row">
+                <div class="dash-month-left">
+                    <span class="dash-month-label" id="dash-month-label">${monthNames[month-1]} ${year}</span>
+                    <span class="dash-month-count" id="dash-orders-count">⏳</span>
+                </div>
+                <div class="dash-month-right">
+                    <span class="dash-month-revenue" id="dash-revenue">—</span>
+                    <span class="dash-month-average" id="dash-average">—</span>
+                </div>
+                <div class="dash-month-controls">
+                    <button class="btn btn-sm qty-btn" onclick="dashShiftMonth(1)">+</button>
+                    <button class="btn btn-sm qty-btn" onclick="dashShiftMonth(-1)">−</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="dash-salary-section"></div>
+    `;
+
+    loadDashData();
+}
+
+window.dashShiftMonth = function(delta) {
+    let m = window._dashMonth + delta;
+    let y = window._dashYear;
+    if (m < 1) { m = 12; y--; }
+    if (m > 12) { m = 1; y++; }
+    window._dashMonth = m;
+    window._dashYear = y;
+    loadDashData();
+};
+
+async function loadDashData() {
+    const month = window._dashMonth;
+    const year = window._dashYear;
+    const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+    document.getElementById('dash-month-label').textContent = `${monthNames[month-1]} ${year}`;
+    const salaryContainer = document.getElementById('dash-salary-section');
+
+    try {
+        const data = await API.get(`/api/reports/summary?month=${month}&year=${year}`);
+
+        document.getElementById('dash-orders-count').textContent = `${data.total_orders || 0} заказов`;
+        document.getElementById('dash-revenue').textContent = data.total_revenue ? fmt(data.total_revenue) : '0 ₽';
+        document.getElementById('dash-average').textContent = data.average_order ? `Средний ${fmt(data.average_order)}` : 'Средний —';
+
+        if (data.total_orders === 0) {
+            salaryContainer.innerHTML = `<div class="card"><p class="t-sm" style="text-align:center;color:var(--text-muted)">Нет заказов за этот период</p></div>`;
+            return;
+        }
+
+        if (data.salary_by_performer && Object.keys(data.salary_by_performer).length > 0) {
+            let salaryHTML = `<div class="card dash-salary-card"><div class="dash-stats-row section-header"><span class="dash-stats-label">💵 ЗАРПЛАТА</span></div>`;
+
+            Object.entries(data.salary_by_performer)
+                .sort((a,b) => b[1]-a[1])
+                .forEach(([perf, amt]) => {
+                    salaryHTML += `
+                        <div class="dash-stats-row clickable" onclick="showPerformerStats('${perf}')">
+                            <span class="dash-stats-label">${perf}</span>
+                            <span class="dash-stats-value">${fmt(amt)}</span>
+                        </div>
+                    `;
+                });
+
+            salaryHTML += '</div>';
+            salaryContainer.innerHTML = salaryHTML;
+        } else {
+            salaryContainer.innerHTML = '';
+        }
+
+    } catch(e) {
+        salaryContainer.innerHTML = `<div class="card"><p class="t-sm" style="text-align:center;color:var(--danger)">Ошибка: ${e.message}</p></div>`;
+    }
+}
+
+window.showPerformerStats = function(name) {
+    toast(`📊 Статистика по ${name}`, 'info');
+};
+
+
+// ====== ЗАКАЗЫ (АДАПТИВНЫЙ) ======
+async function renderOrders() {
+    const main = document.getElementById('mainContent');
+    const canCreate = ['admin','manager','master'].includes(USER.role);
+
+    try {
+        const data = await API.get('/api/orders');
+        const orders = data.orders || [];
+
+        orders.sort((a, b) => parseDate(b.date) - parseDate(a.date));
+
+        // Группировка по месяцам
+        const byMonth = {};
+        const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+        orders.forEach(o => {
+            const d = parseDate(o.date);
+            const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+            if (!byMonth[key]) byMonth[key] = { label: `${monthNames[d.getMonth()]} ${d.getFullYear()}`, orders: [] };
+            byMonth[key].orders.push(o);
+        });
+
+        const nowKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+
+main.innerHTML = `
+    <!-- Панель управления -->
+    <div class="card card-accent">
+        <div class="search-row">
+            ${canCreate ? `<button class="btn btn-primary" onclick="navigate('new-order')">+ Новый</button>` : ''}
+            <div class="search-input-wrapper">
+                <input type="text" id="order-search" placeholder="🔍 поиск" oninput="filterOrders()">
+                <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+            </div>
+            <span class="search-count t-sm" id="search-count">Всего: ${orders.length}</span>
+        </div>
+    </div>
+
+
+            <!-- Список заказов -->
+            <div id="orders-list">
+                ${Object.keys(byMonth).sort().reverse().map(key => {
+                    const group = byMonth[key];
+                    const isOpen = key === nowKey ? 'open' : '';
+                    return `
+                        <details class="card card-details" ${isOpen}>
+                            <summary class="detail-summary">
+                                <span class="t-md">📅 ${group.label}</span>
+                                <span class="order-count t-sm">${group.orders.length}</span>
+                            </summary>
+                            <div class="table-wrap-no-pad">
+<table class="data-table-adaptive">
+    <thead>
+        <tr>
+            <th class="col-center col-num">№</th>
+            <th class="col-center col-date">Дата</th>
+            <th class="col-center col-client">Клиент</th>
+            <th class="col-center col-plate">Госномер</th>
+            <th class="col-right col-sum">Сумма</th>
+        </tr>
+    </thead>
+    <tbody>
+        ${group.orders.map(o => `
+            <tr class="clickable" onclick="viewOrder('${o.order_id}')"
+                data-search="${(o.client_name||'').toLowerCase()} ${(o.vehicle_plate||'').toLowerCase()} ${(o.zn_number||'').toLowerCase()}">
+<td class="col-center">
+    <span class="status-indicator" style="color:${statusBadge(o.status)}">●</span>
+    <span class="zn-number">${o.zn_number}</span>
+</td>
+                <td class="col-center t-tt">${formatDisplayDate(o.date)}</td>
+                <td class="col-client t-tt">${o.client_name||'—'}</td>
+                <td class="col-center t-tt">${o.vehicle_plate||'—'}</td>
+                <td class="sum-value">${fmt(o.total_amount)}</td>
+            </tr>
+        `).join('')}
+    </tbody>
+</table>
+                            </div>
+                        </details>
+                    `;
+                }).join('')}
+                ${orders.length === 0 ? '<div class="card"><p class="t-sm empty-state">Заказов пока нет</p></div>' : ''}
+            </div>
+        `;
+    } catch(e) {
+        main.innerHTML = `<div class="card"><p class="t-sm error-state">Ошибка: ${e.message}</p></div>`;
+    }
+}
+
+// ====== ПОИСК (для адаптивной таблицы) ======
+function filterOrders() {
+    const q = document.getElementById('order-search').value.toLowerCase().trim();
+    const clearBtn = document.getElementById('search-clear');
+    const countEl = document.getElementById('search-count');
+
+    if (clearBtn) clearBtn.style.display = q ? '' : 'none';
+
+    let totalVisible = 0;
+
+    document.querySelectorAll('#orders-list details').forEach(details => {
+        let visibleCount = 0;
+
+        details.querySelectorAll('tbody tr.clickable').forEach(row => {
+            const text = row.dataset.search || '';
+            if (!q || text.includes(q)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const countSpan = details.querySelector('.order-count');
+        if (countSpan) countSpan.textContent = visibleCount;
+
+        details.style.display = visibleCount === 0 ? 'none' : '';
+
+        if (q && visibleCount > 0) details.setAttribute('open', '');
+
+        if (!q) {
+            const nowKey = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+            const label = details.querySelector('summary span:first-child')?.textContent || '';
+            const monthPart = label.replace('📅 ', '');
+            const now = new Date();
+            const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+            const nowLabel = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+            if (monthPart === nowLabel) {
+                details.setAttribute('open', '');
+            } else {
+                details.removeAttribute('open');
+            }
+        }
+
+        totalVisible += visibleCount;
+    });
+
+    if (countEl) {
+        countEl.textContent = q ? `Найдено: ${totalVisible}` : `Всего: ${totalVisible}`;
+    }
+}
+
+function clearSearch() {
+    const input = document.getElementById('order-search');
+    if (input) input.value = '';
+    filterOrders();
+}
+
+        function formatDisplayDate(d) { if(!d)return'—'; if(d.includes('.'))return d; const[y,m,dd]=d.split('-'); return`${dd}.${m}.${y}`; }
+        function parseDate(d) { if(!d)return new Date(0); if(d.includes('-')&&d.length===10){const[y,m,dd]=d.split('-');return new Date(y,m-1,dd);} const[dd,m,y]=d.split('.');return new Date(y,m-1,dd); }
+        function statusBadge(s) { return {'draft':'#94a3b8','in_progress':'#3b82f6','completed':'#22c55e','cancelled':'#ef4444'}[s]||'#94a3b8'; }
+
+
+
+
+async function renderClients() {
+    const main = document.getElementById('mainContent');
+    try {
+        const data = await API.get('/api/clients');
+        const clients = data.clients || [];
+        const isAdmin = USER.role === 'admin';
+
+        main.innerHTML = `
+            <div class="card card-accent">
+                <div class="info-row">
+                    <h3 class="t-md">👥 Клиенты (${clients.length})</h3>
+                    ${isAdmin ? `<button class="btn btn-primary" onclick="showAddClientForm()">+ Добавить</button>` : ''}
+                </div>
+                ${clients.length === 0 ? '<p class="t-sm">Клиентов пока нет</p>' : `
+                <div class="table-wrap-no-pad">
+                    <table class="data-table-adaptive">
+                        <thead><tr><th>Название</th><th>ИНН</th><th>Телефон</th><th>Email</th></tr></thead>
+                        <tbody>
+                            ${clients.map(c => `
+                                <tr class="clickable" onclick="viewClient(${c.id})">
+                                    <td><span class="t-tt">${c.short_name}</span></td>
+                                    <td class="t-tt">${c.inn || '—'}</td>
+                                    <td class="t-tt">${c.phone || '—'}</td>
+                                    <td class="t-tt">${c.email || '—'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`}
+            </div>`;
+    } catch(e) {
+        main.innerHTML = `<div class="card"><p class="t-sm" style="color:var(--danger)">Ошибка: ${e.message}</p></div>`;
+    }
+}
+
+async function deleteClient(id) {
+    if (!confirm('Удалить клиента и все его автомобили?')) return;
+    try {
+        await API.delete(`/api/clients/${id}`);
+        toast('✅ Клиент удалён', 'success');
+        renderClients();
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+function showAddVehicleForm(clientId) {
+    const form = document.createElement('div');
+    form.className = 'card';
+    form.innerHTML = `
+        <h4 class="t-md section-title">➕ Новый автомобиль</h4>
+        <div class="grid2">
+            <div class="form-group"><label>Госномер *</label><input id="new-plate" placeholder="А123АА77"></div>
+            <div class="form-group"><label>Марка</label><input id="new-brand" placeholder="Mercedes-Benz"></div>
+            <div class="form-group"><label>Модель</label><input id="new-model" placeholder="Actros"></div>
+            <div class="form-group"><label>Год</label><input id="new-year" type="number" value="2024"></div>
+            <div class="form-group"><label>VIN</label><input id="new-vin" placeholder="WDB..."></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" onclick="addVehicle(${clientId})">💾 Сохранить</button>
+            <button class="btn" onclick="this.parentElement.parentElement.remove()">Отмена</button>
+        </div>
+    `;
+    document.getElementById('mainContent').insertBefore(form, document.getElementById('mainContent').lastChild);
+}
+
+async function addVehicle(clientId) {
+    const plate = document.getElementById('new-plate').value.trim();
+    if (!plate) return toast('❌ Введите госномер', 'error');
+    try {
+        await API.post(`/api/clients/${clientId}/vehicles`, {
+            plate,
+            brand: document.getElementById('new-brand').value.trim(),
+            model: document.getElementById('new-model').value.trim(),
+            year: parseInt(document.getElementById('new-year').value) || 0,
+            vin: document.getElementById('new-vin').value.trim()
+        });
+        toast('✅ Авто добавлен', 'success');
+        viewClient(clientId);
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+async function deleteVehicle(vehicleId, clientId) {
+    if (!confirm('Удалить автомобиль?')) return;
+    try {
+        await API.delete(`/api/clients/${clientId}/vehicles/${vehicleId}`);
+        toast('✅ Авто удалён', 'success');
+        viewClient(clientId);
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+
+
+
+
+
+
+function showAddClientForm() {
+    const main = document.getElementById('mainContent');
+    main.insertAdjacentHTML('afterbegin', `
+        <div class="card" id="addClientForm">
+            <h3 class="t-md section-title">➕ Новый клиент</h3>
+            <div class="grid2">
+                <div class="form-group"><label>Полное название *</label><input id="newClientName" placeholder="ООО «Ромашка»"></div>
+                <div class="form-group"><label>Краткое название</label><input id="newClientShort" placeholder="Ромашка"></div>
+                <div class="form-group"><label>ИНН</label><input id="newClientInn" placeholder="1234567890"></div>
+                <div class="form-group"><label>КПП</label><input id="newClientKpp" placeholder="123456789"></div>
+                <div class="form-group"><label>Телефон</label><input id="newClientPhone" placeholder="+7 (000) 000-00-00"></div>
+                <div class="form-group"><label>Email</label><input id="newClientEmail" placeholder="info@example.com"></div>
+                <div class="form-group"><label>Адрес</label><input id="newClientAddress" placeholder="г. Москва, ул. Примерная, д. 1"></div>
+                <div class="form-group"><label>Контактное лицо</label><input id="newClientContact" placeholder="ФИО"></div>
+            </div>
+            <div class="form-group">
+                <label>Заметки</label>
+                <textarea id="newClientNotes" rows="2" placeholder="Дополнительная информация"></textarea>
+            </div>
+
+            <div class="card card-light">
+                <h4 class="t-md section-title">🚛 Автомобили</h4>
+                <div id="newClientVehicles"></div>
+                <button class="btn btn-primary" onclick="addVehicleRow()">+ Добавить авто</button>
+            </div>
+
+            <div class="info-row">
+                <button class="btn btn-primary" onclick="addClient()">💾 Сохранить</button>
+                <button class="btn" onclick="document.getElementById('addClientForm').remove()">Отмена</button>
+            </div>
+        </div>
+    `);
+
+    window._newClientVehicles = [];
+}
+
+function addVehicleRow() {
+    const container = document.getElementById('newClientVehicles');
+    const row = document.createElement('div');
+    row.className = 'grid2';
+    row.classList.add('mb-sm');
+    row.innerHTML = `
+        <div class="form-group"><label>Госномер *</label><input class="v-plate" placeholder="А123АА77" maxlength="9"></div>
+        <div class="form-group"><label>Марка</label><input class="v-brand" placeholder="Mercedes-Benz"></div>
+        <div class="form-group"><label>Модель</label><input class="v-model" placeholder="Actros"></div>
+        <div class="form-group"><label>Год</label><input class="v-year" type="number" min="1990" max="2030" placeholder="2023"></div>
+        <div class="form-group"><label>VIN</label><input class="v-vin" placeholder="WDB9634031L..."></div>
+        <button class="btn btn-danger" onclick="this.parentElement.remove()">🗑️</button>
+    `;
+    container.appendChild(row);
+    window._newClientVehicles.push(row);
+}
+
+async function addClient() {
+    const full_name = document.getElementById('newClientName').value.trim();
+    if (!full_name) return toast('❌ Введите название клиента', 'error');
+
+    const clientData = {
+        full_name,
+        short_name: document.getElementById('newClientShort').value.trim(),
+        inn: document.getElementById('newClientInn').value.trim(),
+        kpp: document.getElementById('newClientKpp').value.trim(),
+        phone: document.getElementById('newClientPhone').value.trim(),
+        email: document.getElementById('newClientEmail').value.trim(),
+        address: document.getElementById('newClientAddress').value.trim(),
+        contact_person: document.getElementById('newClientContact').value.trim(),
+        notes: document.getElementById('newClientNotes').value.trim()
+    };
+
+    try {
+        // 1. Создаём клиента
+        const result = await API.post('/api/clients', clientData);
+        const clientId = result.client.id;
+
+        // 2. Добавляем автомобили
+        const rows = document.querySelectorAll('#newClientVehicles .grid2');
+        for (const row of rows) {
+            const plate = row.querySelector('.v-plate')?.value?.trim();
+            if (!plate) continue;
+
+            await API.post('/api/clients/' + clientId + '/vehicles', {
+                plate: plate,
+                brand: row.querySelector('.v-brand')?.value?.trim() || '',
+                model: row.querySelector('.v-model')?.value?.trim() || '',
+                year: parseInt(row.querySelector('.v-year')?.value) || 0,
+                vin: row.querySelector('.v-vin')?.value?.trim() || ''
+            });
+        }
+
+        toast('✅ Клиент добавлен', 'success');
+        document.getElementById('addClientForm')?.remove();
+        renderClients();
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+async function viewClient(id) {
+    try {
+        const data = await API.get(`/api/clients/${id}`);
+        const c = data.client;
+        const vehicles = c.vehicles || [];
+        const isAdmin = USER.role === 'admin';
+
+        const main = document.getElementById('mainContent');
+        main.innerHTML = `
+            <div class="card card-accent">
+                <div class="info-row">
+                    <div>
+                        <h3 class="t-md">👤 ${c.full_name}</h3>
+                        <p class="t-sm">${c.short_name || ''}</p>
+                    </div>
+                    <button class="btn" onclick="renderClients()">← Назад</button>
+                </div>
+                <div class="grid2">
+                    <div><span class="t-sm">ИНН:</span> <span class="t-md">${c.inn || '—'}</span></div>
+                    <div><span class="t-sm">КПП:</span> <span class="t-md">${c.kpp || '—'}</span></div>
+                    <div><span class="t-sm">Телефон:</span> <span class="t-md">${c.phone || '—'}</span></div>
+                    <div><span class="t-sm">Email:</span> <span class="t-md">${c.email || '—'}</span></div>
+                    <div><span class="t-sm">Адрес:</span> <span class="t-md">${c.address || '—'}</span></div>
+                    <div><span class="t-sm">Контакт:</span> <span class="t-md">${c.contact_person || '—'}</span></div>
+                </div>
+                ${c.notes ? `<p class="t-sm" style="margin-top:12px">${c.notes}</p>` : ''}
+                ${isAdmin ? `<button class="btn btn-danger" style="margin-top:12px" onclick="deleteClient(${c.id})">🗑️ Удалить клиента</button>` : ''}
+            </div>
+
+            <div class="card">
+                <div class="info-row">
+                    <h3 class="t-md">🚛 Автомобили (${vehicles.length})</h3>
+                    ${isAdmin ? `<button class="btn btn-primary" onclick="showAddVehicleForm(${c.id})">+ Добавить авто</button>` : ''}
+                </div>
+                ${vehicles.length === 0 ? '<p class="t-sm">Нет автомобилей</p>' : `
+                <div class="table-wrap-no-pad">
+                    <table class="data-table-adaptive">
+                        <thead><tr><th>Госномер</th><th>Марка</th><th>Модель</th><th>Год</th><th>VIN</th><th></th></tr></thead>
+                        <tbody>
+                            ${vehicles.map(v => `
+                                <tr>
+                                    <td><span class="t-md">${v.plate}</span></td>
+                                    <td class="t-sm">${v.brand || '—'}</td>
+                                    <td class="t-sm">${v.model || '—'}</td>
+                                    <td class="t-sm">${v.year || '—'}</td>
+                                    <td class="t-sm">${v.vin || '—'}</td>
+                                    <td>${isAdmin ? `<button class="btn btn-danger" onclick="deleteVehicle(${v.id}, ${c.id})">🗑️</button>` : ''}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`}
+            </div>
+        `;
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+
+// ====== ЗАЯВКИ: РЕНДЕР ======
+async function renderRequests() {
+    const main = document.getElementById('mainContent');
+    const today = new Date().toISOString().split('T')[0];
+
+main.innerHTML = `
+    <div class="card card-accent">
+        <div class="date-nav-row">
+            <div class="date-input-wrap">
+                <input type="date" id="req-date" value="${today}" onchange="loadRequests()">
+            </div>
+            <button class="btn req-card-btn-small" onclick="prevDay()">←</button>
+            <button class="btn req-card-btn-small" onclick="nextDay()">→</button>
+            <button class="btn btn-primary date-today-btn" onclick="jumpToToday()">Сегодня</button>
+        </div>
+    </div>
+    <div id="req-content">
+        <div class="card"><div class="empty-request">⏳ Загрузка...</div></div>
+    </div>
+`;
+
+    await Promise.all([
+        loadPartsCatalog(),
+        loadVehiclesList()
+    ]);
+
+    await loadRequests();
+}
+
+// ====== КАТАЛОГ ДЕТАЛЕЙ ======
+async function loadPartsCatalog() {
+    try {
+        const data = await API.get('/api/catalogs/parts');
+        window._partsCatalog = data.parts || [];
+    } catch(e) {
+        window._partsCatalog = [];
+    }
+}
+
+// ====== СПИСОК ГОСНОМЕРОВ ======
+async function loadVehiclesList() {
+    try {
+        const data = await API.get('/api/clients');
+        const clients = data.clients || [];
+
+        const clientDetails = await Promise.all(
+            clients.map(c =>
+                API.get(`/api/clients/${c.id}`)
+                    .then(d => d.client)
+                    .catch(() => null)
+            )
+        );
+
+        const plates = [];
+        const seen = new Set();
+
+        clientDetails.forEach(c => {
+            if (!c) return;
+            (c.vehicles || []).forEach(v => {
+                const plate = (v.plate || '').toUpperCase();
+                if (!plate || seen.has(plate)) return;
+                seen.add(plate);
+                plates.push(plate);
+            });
+        });
+
+        plates.sort();
+        window._platesCatalog = plates;
+    } catch(e) {
+        window._platesCatalog = [];
+    }
+}
+
+// ====== ЗАГРУЗКА ЗАЯВОК ======
+async function loadRequests() {
+    const dateInput = document.getElementById('req-date');
+    const content = document.getElementById('req-content');
+    const dateValue = dateInput.value;
+    const [y, m, d] = dateValue.split('-');
+    const dateRu = `${d}.${m}.${y}`;
+
+    content.innerHTML = '<div class="card"><div class="empty-request">⏳ Загрузка...</div></div>';
+
+    try {
+        const data = await API.get(`/api/requests?date=${dateRu}`);
+        content.dataset.partsData = JSON.stringify(data.parts || []);
+        renderRequestsList(data.parts || [], dateValue);
+    } catch(e) {
+        content.innerHTML = `<div class="card"><div class="empty-request"><div class="title">Ошибка</div><div>${e.message}</div></div></div>`;
+    }
+}
+
+// ====== РЕНДЕР СПИСКА КАРТОЧЕК ======
+function renderRequestsList(partsData, dateValue) {
+    const content = document.getElementById('req-content');
+    const [y, m, d] = dateValue.split('-');
+    const dateRu = `${d}.${m}.${y}`;
+
+    // Статистика
+    const statsHTML = partsData.length > 0 ? `
+        <div class="card card-accent">
+            <div class="t-md">📦 Заявка за ${dateRu}</div>
+            <div class="stats-row">
+                <div class="stats-item">
+                    <div class="num">${partsData.reduce((s, p) => s + p.count, 0)}</div>
+                    <div class="lbl">Позиций</div>
+                </div>
+                <div class="stats-item">
+                    <div class="num">${partsData.length}</div>
+                    <div class="lbl">Наименований</div>
+                </div>
+                <div class="stats-item">
+                    <div class="num">${new Set(partsData.flatMap(p => p.vehicles)).size}</div>
+                    <div class="lbl">Машин</div>
+                </div>
+            </div>
+        </div>
+    ` : '';
+
+    // Опции для селектов
+    const partOptions = (window._partsCatalog || []).map(p =>
+        `<option value="${p.name}">${p.name}</option>`
+    ).join('');
+
+    const plateOptions = (window._platesCatalog || []).map(p =>
+        `<option value="${p}">${p}</option>`
+    ).join('');
+
+    // Карточки существующих деталей
+    const cardsHTML = partsData.map((p, idx) => `
+        <div class="card req-card">
+            <div class="req-card-row">
+                <div class="req-card-text">
+                    <div class="req-card-name">${p.name}</div>
+                </div>
+                <div></div>
+                <div class="req-card-qty">${p.count} шт.</div>
+                <button class="btn req-card-btn-small" onclick="changePartCount(${idx}, 1)">+</button>
+            </div>
+            <div class="req-card-row">
+                <div class="req-card-text">
+                    <div class="req-card-plates">${p.vehicles.join(', ') || '—'}</div>
+                </div>
+                <div></div>
+                <button class="btn req-card-btn req-card-btn-delete" onclick="removePart(${idx})">❌</button>
+                <button class="btn req-card-btn-small" onclick="changePartCount(${idx}, -1)">−</button>
+            </div>
+        </div>
+    `).join('');
+
+    // Карточка добавления
+    const addCardHTML = `
+        <div class="card req-card req-add-card">
+            <div class="req-card-row">
+                <div class="req-card-field" id="part-field">
+                    <select id="new-part-name" class="req-card-select">
+                        <option value="">-- Деталь --</option>
+                        ${partOptions}
+                    </select>
+                    <input type="text" id="new-part-name-manual" class="req-card-input"
+                           placeholder="Деталь вручную">
+                </div>
+                <button class="btn req-card-mode-btn" onclick="togglePartMode()"
+                        title="Режим ввода" id="toggle-part-btn">✏️</button>
+                <div class="req-card-qty" id="new-part-qty">1 шт.</div>
+                <button class="btn req-card-btn-small" onclick="changeNewPartQty(1)">+</button>
+            </div>
+            <div class="req-card-row">
+                <div class="req-card-field" id="plate-field">
+                    <select id="new-part-plate" class="req-card-select">
+                        <option value="">-- Авто --</option>
+                        ${plateOptions}
+                    </select>
+                    <input type="text" id="new-part-plate-manual" class="req-card-input"
+                           placeholder="Номер вручную">
+                </div>
+                <button class="btn req-card-mode-btn" onclick="togglePlateMode()"
+                        title="Режим ввода" id="toggle-plate-btn">✏️</button>
+                <button class="btn req-card-btn req-card-btn-confirm" onclick="addPartToRequest()">✅</button>
+                <button class="btn req-card-btn-small" onclick="changeNewPartQty(-1)">−</button>
+            </div>
+        </div>
+    `;
+
+    // Кнопки отправки
+    const actionsHTML = partsData.length > 0 ? `
+        <div class="send-request-row">
+            <button class="btn btn-primary" onclick="previewRequest()">👁 Предпросмотр</button>
+            <button class="btn" onclick="showEmailCheckboxes()">📧 Отправить</button>
+        </div>
+    ` : '';
+
+    content.innerHTML = statsHTML + cardsHTML + addCardHTML + actionsHTML;
+}
+
+// ====== ПЕРЕКЛЮЧЕНИЕ РЕЖИМА: ДЕТАЛЬ ======
+function togglePartMode() {
+    const field = document.getElementById('part-field');
+    const btn = document.getElementById('toggle-part-btn');
+    const isManual = field.classList.toggle('manual-mode');
+
+    if (isManual) {
+        btn.textContent = '📋';
+        document.getElementById('new-part-name-manual').focus();
+    } else {
+        btn.textContent = '✏️';
+        document.getElementById('new-part-name-manual').value = '';
+    }
+}
+
+// ====== ПЕРЕКЛЮЧЕНИЕ РЕЖИМА: АВТО ======
+function togglePlateMode() {
+    const field = document.getElementById('plate-field');
+    const btn = document.getElementById('toggle-plate-btn');
+    const isManual = field.classList.toggle('manual-mode');
+
+    if (isManual) {
+        btn.textContent = '📋';
+        document.getElementById('new-part-plate-manual').focus();
+    } else {
+        btn.textContent = '✏️';
+        document.getElementById('new-part-plate-manual').value = '';
+    }
+}
+
+// ====== КОЛИЧЕСТВО ДЛЯ НОВОЙ ДЕТАЛИ ======
+let _newPartQty = 1;
+function changeNewPartQty(delta) {
+    _newPartQty = Math.max(1, _newPartQty + delta);
+    document.getElementById('new-part-qty').textContent = `${_newPartQty} шт.`;
+}
+
+// ====== ОЧИСТКА ФОРМЫ ДОБАВЛЕНИЯ ======
+function clearAddForm() {
+    document.getElementById('new-part-name').value = '';
+    document.getElementById('new-part-name-manual').value = '';
+    document.getElementById('new-part-plate').value = '';
+    document.getElementById('new-part-plate-manual').value = '';
+
+    document.getElementById('part-field').classList.remove('manual-mode');
+    document.getElementById('plate-field').classList.remove('manual-mode');
+    document.getElementById('toggle-part-btn').textContent = '✏️';
+    document.getElementById('toggle-plate-btn').textContent = '✏️';
+
+    _newPartQty = 1;
+    document.getElementById('new-part-qty').textContent = '1 шт.';
+}
+
+// ====== ДОБАВЛЕНИЕ ДЕТАЛИ ======
+function addPartToRequest() {
+    const partField = document.getElementById('part-field');
+    const plateField = document.getElementById('plate-field');
+
+    const partIsManual = partField.classList.contains('manual-mode');
+    const plateIsManual = plateField.classList.contains('manual-mode');
+
+    const nameInput = partIsManual
+        ? document.getElementById('new-part-name-manual')
+        : document.getElementById('new-part-name');
+    const plateInput = plateIsManual
+        ? document.getElementById('new-part-plate-manual')
+        : document.getElementById('new-part-plate');
+
+    const name = nameInput.value.trim();
+    const plate = plateInput.value.trim().toUpperCase();
+
+    if (!name) {
+        toast(partIsManual ? '⚠️ Введите название детали' : '⚠️ Выберите деталь', 'error');
+        return;
+    }
+    if (!plate) {
+        toast(plateIsManual ? '⚠️ Введите госномер' : '⚠️ Выберите авто', 'error');
+        return;
+    }
+
+    const content = document.getElementById('req-content');
+    const partsData = JSON.parse(content.dataset.partsData || '[]');
+
+    let part = partsData.find(p => p.name.toLowerCase() === name.toLowerCase());
+    if (part) {
+        part.count += _newPartQty;
+        if (!part.vehicles.includes(plate)) {
+            part.vehicles.push(plate);
+        }
+    } else {
+        partsData.push({
+            name: name,
+            count: _newPartQty,
+            vehicles: [plate]
+        });
+    }
+
+    content.dataset.partsData = JSON.stringify(partsData);
+    _newPartQty = 1;
+
+    renderRequestsList(partsData, document.getElementById('req-date').value);
+    toast(`✅ ${name} → ${plate}`, 'success');
+}
+
+// ====== ИЗМЕНЕНИЕ КОЛИЧЕСТВА ======
+function changePartCount(idx, delta) {
+    const content = document.getElementById('req-content');
+    const partsData = JSON.parse(content.dataset.partsData || '[]');
+    const part = partsData[idx];
+    if (!part) return;
+
+    part.count = Math.max(1, part.count + delta);
+
+    content.dataset.partsData = JSON.stringify(partsData);
+    renderRequestsList(partsData, document.getElementById('req-date').value);
+}
+
+// ====== УДАЛЕНИЕ ДЕТАЛИ ======
+function removePart(idx) {
+    if (!confirm('Удалить деталь из заявки?')) return;
+
+    const content = document.getElementById('req-content');
+    const partsData = JSON.parse(content.dataset.partsData || '[]');
+    partsData.splice(idx, 1);
+
+    content.dataset.partsData = JSON.stringify(partsData);
+    renderRequestsList(partsData, document.getElementById('req-date').value);
+}
+
+// ====== НАВИГАЦИЯ ======
+function prevDay() {
+    const inp = document.getElementById('req-date');
+    const dt = new Date(inp.value);
+    dt.setDate(dt.getDate() - 1);
+    inp.value = dt.toISOString().split('T')[0];
+    loadRequests();
+}
+
+function nextDay() {
+    const inp = document.getElementById('req-date');
+    const dt = new Date(inp.value);
+    dt.setDate(dt.getDate() + 1);
+    inp.value = dt.toISOString().split('T')[0];
+    loadRequests();
+}
+
+function jumpToToday() {
+    document.getElementById('req-date').value = new Date().toISOString().split('T')[0];
+    loadRequests();
+}
+
+// ====== ПРЕДПРОСМОТР ======
+function previewRequest() {
+    const content = document.getElementById('req-content');
+    const partsData = JSON.parse(content.dataset.partsData || '[]');
+    const [y, m, d] = document.getElementById('req-date').value.split('-');
+    const dateRu = `${d}.${m}.${y}`;
+
+    if (partsData.length === 0) {
+        toast('⚠️ Заявка пуста', 'error');
+        return;
+    }
+
+    const text = generateRequestText(partsData, dateRu);
+
+    const modal = document.createElement('div');
+    modal.className = 'email-modal';
+    modal.innerHTML = `
+        <div class="email-modal-content">
+            <div class="email-modal-header">
+                <h3>📄 Предпросмотр заявки</h3>
+                <button class="btn btn-sm" onclick="this.closest('.email-modal').remove()">✕</button>
+            </div>
+            <div class="email-modal-body" style="padding: var(--space-md);">
+                <pre class="order-text-block" onclick="selectOrderText(this)"
+                     style="margin: 0; font-size: 12px; line-height: 1.5;">${text}</pre>
+            </div>
+            <div class="email-modal-footer">
+                <button class="btn" onclick="copyRequestText()">📋 Копировать</button>
+                <button class="btn btn-primary" onclick="this.closest('.email-modal').remove(); showEmailCheckboxes();">📧 Отправить</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    window._requestTextForCopy = text;
+}
+
+// ====== ГЕНЕРАЦИЯ ТЕКСТА ======
+function generateRequestText(partsData, dateRu) {
+    const totalQty = partsData.reduce((s, p) => s + p.count, 0);
+    const totalMachines = new Set(partsData.flatMap(p => p.vehicles)).size;
+
+    let text = `📦 ЗАЯВКА НА ЗАПЧАСТИ\n`;
+    text += `📅 Дата: ${dateRu}\n`;
+    text += `🏢 TSM Auto v3.0\n\n`;
+    text += `Позиций: ${totalQty}\n`;
+    text += `Наименований: ${partsData.length}\n`;
+    text += `Машин: ${totalMachines}\n\n`;
+    text += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+
+    partsData.forEach((p, i) => {
+        text += `${i + 1}. ${p.name}\n`;
+        text += `   Количество: ${p.count}\n`;
+        text += `   ТС: ${p.vehicles.join(', ')}\n\n`;
+    });
+
+    text += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    text += `📱 ${new Date().toLocaleString('ru-RU')}`;
+
+    return text;
+}
+
+// ====== КОПИРОВАНИЕ ======
+function copyRequestText() {
+    const text = window._requestTextForCopy;
+    if (!text) {
+        toast('❌ Нет данных для копирования', 'error');
+        return;
+    }
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+            .then(() => toast('📋 Скопировано в буфер', 'success'))
+            .catch(() => fallbackCopy(text));
+    } else {
+        fallbackCopy(text);
+    }
+}
+
+function fallbackCopy(text) {
+    try {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.cssText = 'position:fixed; left:-9999px; top:-9999px; opacity:0;';
+        document.body.appendChild(textarea);
+
+        textarea.focus();
+        textarea.select();
+        textarea.setSelectionRange(0, text.length);
+
+        const success = document.execCommand('copy');
+        document.body.removeChild(textarea);
+
+        if (success) {
+            toast('📋 Скопировано в буфер', 'success');
+        } else {
+            toast('❌ Не удалось скопировать', 'error');
+        }
+    } catch (e) {
+        toast('❌ Ошибка копирования: ' + e.message, 'error');
+    }
+}
+
+// ====== МОДАЛКА ОТПРАВКИ ======
+async function showEmailCheckboxes() {
+    const content = document.getElementById('req-content');
+    const partsData = JSON.parse(content.dataset.partsData || '[]');
+    const [y, m, d] = document.getElementById('req-date').value.split('-');
+    const dateRu = `${d}.${m}.${y}`;
+
+    if (partsData.length === 0) {
+        toast('⚠️ Заявка пуста', 'error');
+        return;
+    }
+
+    let recipientsConfig = {};
+    try {
+        const data = await API.get('/api/admin/settings');
+        recipientsConfig = data.email?.recipients || {};
+    } catch(e) {
+        toast(`❌ Не удалось загрузить получателей: ${e.message}`, 'error');
+        return;
+    }
+
+    if (Object.keys(recipientsConfig).length === 0) {
+        toast('⚠️ Нет настроенных получателей', 'error');
+        return;
+    }
+
+    const labels = { accounting: 'Бухгалтерия', personal: 'Поставщик', warehouse: 'Склад' };
+
+    let checkboxesHTML = '';
+    for (const [key, email] of Object.entries(recipientsConfig)) {
+        const label = labels[key] || key;
+        checkboxesHTML += `
+            <label class="recipient-row">
+                <input type="checkbox" class="email-recipient" value="${key}">
+                <div class="recipient-info">
+                    <span class="name">${label}</span>
+                    <span class="email">${email}</span>
+                </div>
+            </label>
+        `;
+    }
+
+    const modal = document.createElement('div');
+    modal.className = 'email-modal';
+    modal.innerHTML = `
+        <div class="email-modal-content" style="max-width: 400px;">
+            <div class="email-modal-header">
+                <h3>📧 Кому отправить</h3>
+                <button class="btn btn-sm" onclick="this.closest('.email-modal').remove()">✕</button>
+            </div>
+            <div class="email-modal-body">${checkboxesHTML}</div>
+            <div class="email-modal-footer">
+                <button class="btn" onclick="this.closest('.email-modal').remove()">Отмена</button>
+                <button class="btn btn-primary" id="btn-email-ok">Отправить</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('btn-email-ok').onclick = async () => {
+        const recipients = Array.from(document.querySelectorAll('.email-recipient:checked')).map(cb => cb.value);
+        if (recipients.length === 0) {
+            toast('⚠️ Выберите получателя', 'error');
+            return;
+        }
+        modal.remove();
+        await sendEmailToRecipients(recipients, dateRu, partsData);
+    };
+}
+
+// ====== ОТПРАВКА EMAIL ======
+async function sendEmailToRecipients(recipients, dateRu, partsData) {
+    try {
+        toast('⏳ Отправка...', 'info');
+        const text = generateRequestText(partsData, dateRu);
+
+        const result = await API.post('/api/requests/send-email', {
+            date: dateRu,
+            parts: partsData,
+            recipients: recipients,
+            text: text
+        });
+        toast(result.message || '✅ Отправлено!', 'success');
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+
+// ====== ВЫХОД ======
+function logout() {
+    localStorage.clear();
+    window.location.href = '/login';
+}
+
+
+
+
+
+async function downloadOrderExcel(orderId) {
+    try {
+        toast('⏳ Генерация...', 'info');
+
+        // 1. Генерируем Excel (с токеном через API)
+        const result = await API.post(`/api/documents/order/${orderId}`);
+
+        // 2. Получаем токен из localStorage
+        const token = localStorage.getItem('tsm_token');
+        if (!token) {
+            toast('❌ Сессия истекла, войдите заново', 'error');
+            return;
+        }
+
+        // 3. Скачиваем файл С ТОКЕНОМ
+        const resp = await fetch(`/api/documents/download/${result.filename}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        // 4. Проверяем статус ответа
+        if (!resp.ok) {
+            if (resp.status === 401 || resp.status === 403) {
+                toast('❌ Сессия истекла, войдите заново', 'error');
+            } else {
+                toast(`❌ Ошибка скачивания: ${resp.status}`, 'error');
+            }
+            return;
+        }
+
+        // 5. Создаём Blob и скачиваем
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast('✅ Скачан', 'success');
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+async function changeOrderStatus(orderId, newStatus) {
+    try {
+        await API.put(`/api/orders/${orderId}/status`, { status: newStatus });
+        toast('✅ Статус обновлён', 'success');
+        viewOrder(orderId);
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+async function deleteOrder(orderId) {
+    if (!confirm('Удалить заказ? Запчасти вернутся на склад.')) return;
+
+    try {
+        await API.delete(`/api/orders/${orderId}`);
+        toast('✅ Заказ удалён', 'success');
+        renderOrders();
+    } catch(e) {
+        toast(`❌ ${e.message}`, 'error');
+    }
+}
+
+
+
+// ====== iOS TABS (segmented control с ползунком) ======
+function initTabs() {
+    const tabBar = document.getElementById('tabNav');
+    if (!tabBar || tabBar.dataset.wrapped) return;
+
+    const buttons = Array.from(tabBar.querySelectorAll('.tab-btn'));
+    const inner = document.createElement('div');
+    inner.className = 'tab-bar-inner';
+
+    const indicator = tabBar.querySelector('.tab-indicator');
+    if (indicator) inner.appendChild(indicator);
+    buttons.forEach(btn => inner.appendChild(btn));
+
+    tabBar.appendChild(inner);
+    tabBar.dataset.wrapped = '1';
+
+    updateTabIndicator();
+    window.addEventListener('resize', updateTabIndicator);
+}
+
+function updateTabIndicator() {
+    const inner = document.querySelector('.tab-bar-inner');
+    const active = inner?.querySelector('.tab-btn.active');
+    const indicator = inner?.querySelector('.tab-indicator');
+
+    if (!active || !indicator || !inner) return;
+
+    const innerRect = inner.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    const offsetLeft = activeRect.left - innerRect.left;
+
+    indicator.style.width = `${activeRect.width}px`;
+    indicator.style.transform = `translateX(${offsetLeft - 3}px)`;
+}
+
+// ====== ИНИЦИАЛИЗАЦИЯ (всё вместе, в правильном порядке) ======
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Сначала оборачиваем табы
+    initTabs();
+
+    // 2. Настраиваем хедер
+    document.getElementById('headerUserName').textContent = USER.full_name || 'Пользователь';
+    document.getElementById('headerUserRole').textContent =
+        {admin:'Администратор', manager:'Руководитель', master:'Мастер', accountant:'Бухгалтер'}[USER.role] || USER.role;
+
+    // 3. Показываем admin-only элементы для админов
+    if (['admin', 'manager'].includes(USER.role)) {
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+    }
+
+    // 4. И только теперь первая навигация (индикатор уже на месте)
+    navigate('dashboard');
+});
+    </script>
+</body>
+</html>
