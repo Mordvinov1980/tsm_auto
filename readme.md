@@ -115,7 +115,7 @@ flowchart TB
 ### Структура проекта
 
 ```
-tsm_auto_prod/
+tsm_auto_3.0.7/
 ├── backend/
 │   ├── main.py                     # Точка входа FastAPI, middleware, роутеры
 │   ├── db.py                       # SQLite + WAL + StaticPool

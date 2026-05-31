@@ -10,35 +10,96 @@
 
     <style>
 :root {
-    --space-xs: 4px;
-    --space-sm: 8px;
-    --space-md: 16px;
-    --space-lg: 24px;
-    --space-xl: 32px;
+  /* Основной цвет (стальной синий) */
+  --primary: #5b7fb8;
+  --primary-hover: #4a6a9e;
 
-    --input-height: 40px;
-    --radius-sm: 8px;
-    --radius-pill: 999px;
-    --radius-circle: 50%;
-    --radius-lg: 20px;
-    --container-width: 780px;
+  /* Фоны - убираем белый полностью */
+  --bg: #dde2eb;        /* светло-серый фон страницы */
+  --card-bg: #e6f0fa;   /* светлый оттенок основного цвета для карточек */
+  --header-bg: #d9e6f2; /* чуть более темный оттенок для заголовков */
 
---primary: #5b7fb8;           /* стальной синий (был яркий #3b82f6) */
---primary-hover: #4a6a9e;
---bg: #f0f2f5;
---card-bg: #ffffff;
---text: #1a1a2e;
---text-muted: #94a3b8;
---border: #e2e8f0;
---success: #5a9e7c;           /* шалфей (был яркий #22c55e) */
---danger: #b85555;            /* терракот (был яркий #ef4444) */
---warning: #b08a5a;           /* охра (был яркий #f59e0b) */
+  /* Текст - корректируем для лучшей читаемости на новых фонах */
+  --text: #1a1a2e;      /* темный текст */
+  --text-muted: #5a6a8a; /* более темный серый для вторичного текста */
 
-    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Границы */
+  --border: #d1d9e6;    /* светлые границы, соответствующие новой палитре */
+
+  /* Дополнительные элементы */
+  --shadow: 0 2px 8px rgba(91, 127, 184, 0.1); /* тень в тон палитре */
+
+  /* Сопутствующие цвета */
+  --success: #5a9e7c;   /* шалфей */
+  --warning: #b08a5a;   /* охра */
+  --danger: #b85555;    /* терракот */
+
+  /* Отступы */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  /* Размеры */
+  --input-height: 40px;
+  --radius-sm: 8px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+  --radius-lg: 20px;
+  --container-width: 780px;
+  /* Шрифт */
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Добавляем тень для карточек, чтобы они выделялись */
+.card {
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+/* Улучшаем заголовки с градиентом в тон палитре */
+.app-header {
+  background: linear-gradient(135deg, var(--primary), #4a6a9e);
+}
+
+/* Для заголовков вкладок */
+.page-header-card {
+  background: var(--header-bg);
+}
+
+/* Для акцентных кнопок */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), #4a6a9e);
+}
+
+
+
+/* Для теней в табах */
+.tab-indicator {
+  background: linear-gradient(135deg, var(--primary), #4a6a9e);
+}
+
+/* Для контекстной панели внизу */
+.context-btn-bar {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+/* Для отступов контекст-бара */
+.context-btn-bar-inner {
+  padding: 10px;
+}
+
+/* Для текста в карточках */
+.order-text-block, .performer-empty, .client-profile-card {
+  color: var(--text);
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-* { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+* {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
 
 body {
     font-family: var(--font);
@@ -58,7 +119,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 var(--space-md);
+    padding: 0 var(--space-sm);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -90,7 +151,7 @@ body {
     top: 48px;
     z-index: 99;
     background: transparent;
-    padding: 10px 6px;
+    padding: 10px 8px;
     border-bottom: none;
     display: flex;
     overflow-x: auto;
@@ -101,9 +162,10 @@ body {
 .tab-bar-inner {
     position: relative;
     display: flex;
-    background: rgba(240, 242, 245, 0.4);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
+    /* Просто используем тот же цвет, что и в --text, но с прозрачностью */
+    background: rgba(26, 26, 46, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 2px solid var(--border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: var(--radius-pill);
@@ -118,7 +180,8 @@ body {
     top: 4px;
     left: 1px;
     height: calc(100% - 8px);
-    background: var(--card-bg);
+    /* Для ползунка немного больше прозрачности */
+    background: rgba(26, 26, 46, 0.35);
     border-radius: var(--radius-pill);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.10);
     transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -138,7 +201,7 @@ body {
     border-radius: var(--radius-pill);
     font-size: 14px;
     font-weight: 600;
-    color: rgba(0, 0, 0, 0.4);
+    color: rgba(26, 26, 46, 0.6); /* неактивные: var(--text) 45% */
     cursor: pointer;
     white-space: nowrap;
     display: flex;
@@ -149,23 +212,23 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-.tab-btn:hover { color: var(--primary); }
-.tab-btn.active { color: var(--primary); transform: scale(1.1); }
+
+.tab-btn.active { color: var(--text) }
 .tab-btn .tab-text { display: inline; }
 .tab-btn.admin-only.hidden { display: none; }
 
 @media (max-width: 640px) {
-    .tab-bar { padding: 8px 4px; }
+    .tab-bar { padding: 8px 6px; }
     .tab-btn .tab-text { display: none; }
     .tab-btn { font-size: 18px; min-width: 48px; padding: 0; height: var(--input-height); }
 }
 
-.container { max-width: var(--container-width); margin: 0 auto; padding: var(--space-md); }
+.container { max-width: var(--container-width); margin: 0 auto; padding: 0 var(--space-sm); }
 
 .card {
     background: var(--card-bg);
     border-radius: var(--radius-sm);
-    padding: var(--space-sm);
+    /* padding: var(--space-sm); */
     margin-bottom: var(--space-sm);
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     border: 1px solid var(--border);
@@ -251,8 +314,8 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .page-header-content {
     display: flex;
     align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-md);
+    gap: var(--space-sm);
+    padding: var(--space-sm);
 }
 
 .page-header-icon {
@@ -592,7 +655,8 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 }
 .dash-stats-row:last-child { border-bottom: none; }
 .dash-stats-row.clickable { cursor: pointer; }
-.dash-stats-row.clickable:active { background: var(--bg); }
+.dash-stats-row.clickable:hover { background: #e6f0fa; }
+.dash-stats-row.clickable:active { background: var(--header-bg); }
 .dash-stats-label { font-size: 14px; font-weight: 500; color: var(--text); }
 .dash-stats-value { font-size: 15px; font-weight: 700; color: var(--primary); }
 .dash-stats-value.success { color: var(--success); }
@@ -646,7 +710,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 }
 
 @media (max-width: 640px) {
-    .container { padding: var(--space-sm); }
+    .container { padding: 0 var(--space-sm); }
     .card { margin-bottom: var(--space-sm); }
     .grid2, .grid3 { grid-template-columns: 1fr; gap: var(--space-sm); }
     .app-header .user-area .role { display: none; }
@@ -659,7 +723,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 }
 
 .order-text-block {
-    background: #fff;
+    background: var(--card-bg);
     border-radius: var(--radius-sm);
     padding: var(--space-md);
     font-size: 14px;
@@ -885,7 +949,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     align-items: center;
     gap: var(--space-sm);
     padding: 10px var(--space-md);
-    background: #f8fafc;
+    background: #d9e6f2;
     border-bottom: 1px solid var(--border);
     cursor: pointer;
     user-select: none;
@@ -978,7 +1042,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 
 .orders-table th {
     padding: 8px 10px;
-    background: #f8fafc;
+    background: #e6f0fa;
     font-size: 10px;
     font-weight: 700;
     color: var(--text-muted);
@@ -1239,14 +1303,14 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .performer-stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-sm);
-    padding: var(--space-sm);
+    gap: 6px;
+    padding: 6px;
 }
 
 .performer-stat {
     text-align: center;
     padding: var(--space-sm);
-    background: var(--card-bg);
+    background: var(--header-bg);
     border-radius: 16px;
     border: 1px solid var(--border);
     display: flex;
@@ -1345,7 +1409,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     overflow: hidden;
     margin-bottom: var(--space-sm);
     border-radius: var(--radius-lg);
-    background: #ffffff;
+    background: var(--card-bg);
     border: 1px solid var(--border);
     cursor: pointer;
     transition: transform 0.15s;
@@ -1358,6 +1422,8 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     align-items: center;
     gap: var(--space-md);
     padding: var(--space-md);
+    background: var(--header-bg);
+
 }
 
 .client-avatar {
@@ -1396,7 +1462,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .client-list-footer {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    background: #f8fafc;
+    background: var(--card-bg);
     padding: 6px 8px;
     gap: 4px;
 }
@@ -1911,7 +1977,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     display: flex;
     align-items: center;
     gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-sm) var(--space-sm);
     background: #eff6ff;
     border-bottom: 1px solid var(--border);
 }
@@ -1932,7 +1998,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .req-add-header-text { flex: 1; font-size: 13px; font-weight: 700; color: var(--primary); }
 
 .req-add-body {
-    padding: var(--space-sm) var(--space-md);
+    padding: var(--space-sm) var(--space-sm);
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
@@ -2130,7 +2196,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     align-items: center;
     gap: var(--space-sm);
     padding: var(--space-sm) var(--space-md);
-    background: #f8fafc;
+    background: var(--header-bg);
     border-bottom: 1px solid var(--border);
     cursor: pointer;
     user-select: none;
@@ -2197,7 +2263,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     border-radius: 12px;
     margin-bottom: 8px;
     overflow: hidden;
-    background: #fafbfc;
+    background: var(--bg);
 }
 .work-subgroup:last-child { margin-bottom: 0; }
 
@@ -2206,7 +2272,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    background: #f1f5f9;
+    background: var(--header-bg);
     cursor: pointer;
     user-select: none;
     transition: background 0.15s;
@@ -2263,7 +2329,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .work-subgroup-body {
     padding: 8px;
     display: none;
-    background: #fff;
+    background: var(--card-bg);
 }
 .work-subgroup.open .work-subgroup-body {
     display: block;
@@ -2275,7 +2341,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     gap: 8px;
     padding: 8px 10px;
     margin-bottom: 6px;
-    background: #fff;
+    background: #dee3fc;
     border: 1.5px solid var(--border);
     border-radius: 14px;
     cursor: pointer;
@@ -2287,7 +2353,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .nw-chip:active { transform: scale(0.99); }
 
 .nw-chip.selected {
-    background: #eff6ff;
+    background: #defcf2;
     border-color: var(--primary);
 }
 
@@ -2462,7 +2528,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .email-modal-content {
-    background: var(--card-bg);
+    background: var(--bg);
     border-radius: var(--radius-sm);
     box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     width: 100%;
@@ -2480,6 +2546,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .email-modal-header {
     padding: var(--space-md);
     border-bottom: 1px solid var(--border);
+    background: var(--header-bg);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -2491,7 +2558,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .email-modal-footer {
     padding: var(--space-md);
     border-top: 1px solid var(--border);
-    background: #f8fafc;
+    background: var(--header-bg);
     display: flex;
     justify-content: flex-end;
     gap: var(--space-sm);
@@ -2553,7 +2620,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
     overflow: hidden;
     margin-bottom: var(--space-sm);
     border-radius: var(--radius-lg);
-    background: #ffffff;
+    background: var(--header-bg);
     border: 1px solid var(--border);
     transition: transform 0.15s;
 }
@@ -2627,7 +2694,7 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 .user-actions-footer {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    background: var(--card-bg);
+    background: var(--bg);
     padding: 6px 8px;
     gap: 4px;
 }
@@ -2820,43 +2887,6 @@ label { font-size: 11px; font-weight: 600; color: var(--text-muted); display: bl
 }
 
 
-/* === Светлые карточки клиентов === */
-.client-list-card .client-name { color: var(--text); }
-.client-list-card .client-short { color: var(--text-muted); }
-.client-list-card .client-stat-num { color: var(--primary); }
-.client-list-card .client-stat-lbl { color: var(--text-muted); }
-.client-list-card .client-list-footer { background: #f8fafc; }
-.client-list-card .client-arrow {
-    background: #f1f5f9;
-    color: var(--text-muted);
-}
-
-/* === Светлые карточки пользователей === */
-.user-list-card .user-name { color: var(--text); }
-.user-list-card .user-login { color: var(--text-muted); }
-.user-list-card .user-role-badge {
-    background: #e8eef7;
-    color: var(--primary);
-}
-.user-list-card .user-inactive-badge {
-    background: #f0e0e0;
-    color: var(--danger);
-}
-.user-list-card .user-actions-footer { background: #f8fafc; }
-.user-list-card .user-action-btn {
-    background: #ffffff;
-    color: var(--text);
-    border: 1px solid var(--border);
-}
-.user-list-card .user-action-btn:hover {
-    background: #f8fafc;
-    border-color: var(--primary);
-}
-.user-list-card .user-action-btn.danger:hover {
-    background: #f0e0e0;
-    border-color: var(--danger);
-    color: var(--danger);
-}
 
 
 
@@ -4986,8 +5016,8 @@ async function viewClient(id) {
                 <div class="dash-stats-row section-header" style="justify-content:space-between">
                     <span class="dash-stats-label">🚛 АВТОМОБИЛИ (${vehicles.length})</span>
                     ${canCreate ? `<button class="btn btn-sm btn-primary" onclick="showAddVehicleForm(${c.id})">
-    <i class="fas fa-plus"></i> <span class="btn-text">Добавить</span>
-</button>` : ''}
+                          <i class="fas fa-plus"></i> <span class="btn-text">Добавить</span>
+                                   </button>` : ''}
                 </div>
                 ${vehicles.length === 0 ? `
                     <div class="performer-empty">

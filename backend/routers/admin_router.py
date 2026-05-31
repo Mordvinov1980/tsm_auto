@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends
 from backend.auth import require_manager  # вместо require_admin
+from backend.auth import require_admin  # вместо require_manager
 from backend.config import load_json, save_json
 
 router = APIRouter()
@@ -31,7 +32,7 @@ async def get_settings(user: dict = Depends(require_manager)):  # ← здесь
 
 
 @router.put("/settings")
-async def update_settings(body: dict, user: dict = Depends(require_manager)):  # ← и здесь
+async def update_settings(body: dict, user: dict = Depends(require_admin)):  # ← и здесь
     """Сохранить настройки."""
     if "contractor" in body:
         save_json("contractor.json", body["contractor"])
@@ -50,7 +51,7 @@ async def update_settings(body: dict, user: dict = Depends(require_manager)):  #
     return {"status": "ok", "message": "✅ Настройки сохранены"}
     
 @router.get("/users")
-async def list_users(user: dict = Depends(require_manager)):
+async def list_users(user: dict = Depends(require_admin)):
     """Получить список всех пользователей системы."""
     with get_session() as session:
         users = session.exec(select(User).order_by(User.id)).all()
@@ -82,7 +83,7 @@ class PasswordChange(BaseModel):
     password: str
 
 @router.post("/users")
-async def create_user(body: UserCreate, user: dict = Depends(require_manager)):
+async def create_user(body: UserCreate, user: dict = Depends(require_admin)):
     """Создать нового пользователя."""
     VALID_ROLES = {"admin", "manager", "master", "accountant"}
     if body.role not in VALID_ROLES:
@@ -122,7 +123,7 @@ async def create_user(body: UserCreate, user: dict = Depends(require_manager)):
 
 
 @router.put("/users/{user_id}")
-async def update_user(user_id: int, body: UserUpdate, user: dict = Depends(require_manager)):
+async def update_user(user_id: int, body: UserUpdate, user: dict = Depends(require_admin)):
     """Обновить пользователя (имя, роль, активность)."""
     VALID_ROLES = {"admin", "manager", "master", "accountant"}
     if body.role and body.role not in VALID_ROLES:
@@ -157,7 +158,7 @@ async def update_user(user_id: int, body: UserUpdate, user: dict = Depends(requi
 
 
 @router.put("/users/{user_id}/password")
-async def change_user_password(user_id: int, body: PasswordChange, user: dict = Depends(require_manager)):
+async def change_user_password(user_id: int, body: PasswordChange, user: dict = Depends(require_admin)):
     """Сменить пароль пользователю."""
     if len(body.password) < 4:
         raise HTTPException(400, "Пароль минимум 4 символа")
@@ -177,7 +178,7 @@ async def change_user_password(user_id: int, body: PasswordChange, user: dict = 
     return {"status": "ok", "message": f"✅ Пароль для '{target_login}' изменён"}
 
 @router.delete("/users/{user_id}")
-async def delete_user(user_id: int, user: dict = Depends(require_manager)):
+async def delete_user(user_id: int, user: dict = Depends(require_admin)):
     """Деактивировать пользователя."""
     with get_session() as session:
         target = session.get(User, user_id)
