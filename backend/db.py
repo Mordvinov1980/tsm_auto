@@ -1,5 +1,7 @@
+# backend/db.py (обновлённый)
+
 from sqlmodel import create_engine, SQLModel, Session, select
-from sqlalchemy.pool import StaticPool  # ← ВОЗВРАЩАЕМ StaticPool
+from sqlalchemy.pool import StaticPool
 from sqlalchemy import text
 from pathlib import Path
 
@@ -12,28 +14,48 @@ engine = create_engine(
     DATABASE_URL,
     echo=False,
     connect_args={"check_same_thread": False},
-    poolclass=StaticPool,       # ← Одно соединение для SQLite
+    poolclass=StaticPool,
 )
 
 
 def init_db():
-    """Создаёт таблицы и включает WAL-режим."""
+    """Создаёт таблицы, включает WAL-режим и добавляет новые колонки."""
     import backend.models.user
     import backend.models.client
     import backend.models.vehicle
     import backend.models.catalog
     import backend.models.order
     import backend.models.document
-    import backend.models.performer  # noqa
+    import backend.models.performer
+    import backend.models.driver_request
 
     SQLModel.metadata.create_all(engine)
 
-    # WAL-режим оставляем — он ускоряет чтение
+    # WAL-режим
     with engine.connect() as conn:
         conn.execute(text("PRAGMA journal_mode=WAL;"))
         conn.commit()
 
+    # ===== МИГРАЦИИ (добавление новых колонок) =====
+    _migrate_driver_requests()
+
     _create_default_admin()
+
+
+def _migrate_driver_requests():
+    """Добавляет колонку parts в driver_requests, если её нет."""
+    with engine.connect() as conn:
+        # Проверяем, есть ли колонка parts
+        result = conn.execute(text("PRAGMA table_info(driver_requests);"))
+        columns = [row[1] for row in result.fetchall()]
+        
+        if "parts" not in columns:
+            print("🔧 Добавляем колонку parts в driver_requests...")
+            conn.execute(text("ALTER TABLE driver_requests ADD COLUMN parts TEXT DEFAULT '{}';"))
+            conn.commit()
+            print("✅ Колонка parts добавлена")
+        else:
+            print("ℹ️ Колонка parts уже существует")
 
 
 def _create_default_admin():

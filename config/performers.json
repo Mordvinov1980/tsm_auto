@@ -1,0 +1,7 @@
+{
+  "salary_rules": {
+    "mechanical_rate": 0.3,
+    "repair_rate": 0.35,
+    "painting_rate": 0.4
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "smtp_server": "smtp.mail.ru",
+  "smtp_port": 465,
+  "sender_email": "oleg.mordvinov.1980@mail.ru",
+  "sender_password": "",
+  "recipients": {
+    "accounting": "buh.partman@mail.ru",
+    "personal": "y.krasnov@europart.ru",
+    "warehouse": "oleg.mordvinov.1980@mail.ru"
+  }
+}

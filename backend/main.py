@@ -27,7 +27,7 @@ from backend.rate_limit import limiter  # ← ЭТА СТРОКА ОБЯЗАТЕ
 from backend.db import init_db
 from backend.routers import (
     auth_router, catalog_router, client_router, performer_router, 
-    order_router, admin_router, document_router, report_router, request_router
+    order_router, admin_router, document_router, report_router, request_router, public_router
 )
 
 # ====== 3. ПРОВЕРКА БЕЗОПАСНОСТИ ======
@@ -99,8 +99,44 @@ BLOCK_PATTERNS = [
     # iOS/PWA иконки (если не используешь PWA — блокируем)
     '/apple-touch-icon',
     '/apple-touch-icon-precomposed.png',
-   
     
+    # Git-файлы
+    "/.git/",
+    "/.gitconfig",
+    
+    # WordPress
+    "/wp-includes/",
+    "/xmlrpc.php",
+    "/wp-json/",
+    "/wp-admin/",
+    
+    # Exchange/OWA
+    "/owa/",
+    "/ews/",
+    "/autodiscover/",
+    "/ecp/",
+    "/mapi/",
+    "/rpc/",
+    
+    # Конфиги
+    "/config.py",
+    "/admin/config.php",
+    "/.claude/",
+    "/telescope/",
+    
+    # IoT/ONVIF
+    "/onvif/",
+    "/mcp",
+    "/sse",
+    
+    # Разное
+    "/developmentserver/",
+    "/validate-sso",
+    "/.well-known/security.txt",
+    "/tmui/",
+    "/cgi-bin/",
+    "/Dr0v",
+    "/version",
 ]
 
 @app.middleware("http")
@@ -154,6 +190,8 @@ app.include_router(order_router.router, prefix="/api/orders", tags=["Заказ�
 app.include_router(document_router.router, prefix="/api/documents", tags=["Документы"])
 app.include_router(report_router.router, prefix="/api/reports", tags=["Отчёты"])
 app.include_router(request_router.router, prefix="/api/requests", tags=["Заявки"])
+app.include_router(public_router.router, prefix="/api/public", tags=["Водители"])
+
 
 
 # ========== 🏥 HEALTH CHECK ==========
@@ -188,6 +226,9 @@ async def serve_frontend():
 async def serve_login():
     return FileResponse("frontend/login.html")
 
+@app.get("/driver")
+async def serve_driver():
+    return FileResponse("frontend/driver.html")
 
 
 

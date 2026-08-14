@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Замена пластика кабины — сообщить о поломке</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-text-size-adjust:100%; }
+body {
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:linear-gradient(165deg,#081a33 0%,#0d2547 60%,#12305c 100%);
+  min-height:100vh; color:#e8ecf2; padding:16px 14px 40px;
+}
+.wrap { max-width:480px; margin:0 auto; }
+header { text-align:center; padding:10px 0 18px; }
+header .truck { font-size:56px; }
+h1 { font-size:20px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
+.brands { font-size:12px; color:#c7d3e6; margin-top:6px; font-weight:600; }
+.sub { font-size:13px; color:#9fb3d1; margin-top:6px; }
+.card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+  border-radius:16px; padding:14px; margin-bottom:12px; }
+label { display:block; font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.6px; color:#9fb3d1; margin-bottom:6px; }
+select, input, textarea { width:100%; background:rgba(255,255,255,.95); color:#12233f;
+  border:none; border-radius:12px; padding:12px 14px; font-size:16px; outline:none; }
+textarea { min-height:70px; resize:vertical; }
+.photo-btn { display:flex; align-items:center; justify-content:center; gap:8px;
+  background:rgba(255,255,255,.1); border:2px dashed rgba(255,255,255,.35);
+  border-radius:12px; padding:14px; font-size:15px; font-weight:600; cursor:pointer; }
+.photo-btn:active { transform:scale(.98); }
+input[type=file] { display:none; }
+.previews { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.prev { background:rgba(255,255,255,.12); border-radius:8px; padding:4px 8px; font-size:12px; }
+.hint { font-size:11px; color:#9fb3d1; margin-top:6px; }
+button.send { width:100%; background:linear-gradient(135deg,#e8ecf2,#c9d4e4);
+  color:#0d2547; font-size:17px; font-weight:800; border:none; border-radius:14px;
+  padding:16px; cursor:pointer; text-transform:uppercase; letter-spacing:.5px; }
+button.send:disabled { opacity:.6; }
+.err { color:#ff9b9b; font-size:13px; margin-top:8px; text-align:center; min-height:18px; }
+.call { font-size:13px; color:#9fb3d1; text-align:center; margin-top:12px; }
+.call a { color:#e8ecf2; font-weight:700; text-decoration:none; }
+.ok { text-align:center; padding:50px 10px; }
+.ok .big { font-size:64px; }
+.ok h2 { font-size:20px; margin:12px 0 6px; }
+.ok p { font-size:14px; color:#9fb3d1; }
+
+/* === ЧИПСЫ ДЛЯ ЗАПЧАСТЕЙ === */
+.chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.chip { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25);
+  border-radius:999px; padding:8px 14px; font-size:13px; font-weight:600;
+  cursor:pointer; user-select:none; display:inline-flex; align-items:center; gap:6px; }
+.chip.on { background:#e8ecf2; color:#0d2547; border-color:#e8ecf2; }
+.chip .count { display:none; background:#3b82f6; color:#fff; border-radius:50%;
+  padding:0 8px; font-size:12px; line-height:20px; }
+.chip .remove { display:none; background:none; border:none; color:#dc2626;
+  font-size:18px; cursor:pointer; padding:0 2px; line-height:1; }
+.chip.on .count { display:inline-block; }
+.chip.on .remove { display:inline-block; }
+#partsContainer { margin-top:8px; }
+#partsStats { font-size:13px; color:#9fb3d1; margin-top:4px; }
+.toggle-btn { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+  border-radius:999px; padding:4px 14px; font-size:12px; color:#e8ecf2;
+  cursor:pointer; }
+.toggle-btn:hover { background:rgba(255,255,255,.2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="truck">🚛</div>
+  <h1>Замена пластика кабины</h1>
+  <div class="brands">MAN • Mercedes-Benz • SITRAK • Dongfeng</div>
+  <div class="sub">Сообщите о поломке заранее —<br>запчасть будет готова к вашему приезду</div>
+</header>
+
+<div id="form">
+  <div class="card">
+    <label>Госномер машины</label>
+    <select id="plate"><option value="">— загрузка… —</option></select>
+    <div id="plate-manual-wrap" style="display:none; margin-top:8px;">
+      <input id="plate-manual" placeholder="Введите госномер" style="text-transform:uppercase" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Что сломалось?</label>
+    <textarea id="comment" placeholder="Например: трещина на ступеньке, правая сторона"></textarea>
+  </div>
+
+  <!-- === НОВЫЙ БЛОК: ЗАПЧАСТИ === -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <label style="margin-bottom:0;">🔧 Запчасти</label>
+      <button class="toggle-btn" id="togglePartsBtn">Показать</button>
+    </div>
+    <div id="partsContainer" style="display:none;">
+      <div class="chips" id="partsGrid"><span style="color:#9fb3d1;font-size:13px;">Загрузка...</span></div>
+      <div id="partsStats">Выбрано: <span id="partsCount">0</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Фото поломки (до 3 шт.)</label>
+    <label class="photo-btn" for="photos">📷 Прикрепить фото</label>
+    <input type="file" id="photos" accept="image/*" multiple>
+    <div class="previews" id="previews"></div>
+    <div class="hint">Фото попадут в письмо мастеру и не сохраняются на сервере</div>
+  </div>
+
+  <div class="card">
+    <label>Телефон для связи</label>
+    <input id="phone" type="tel" placeholder="+7 (___) ___-__-__" autocomplete="tel">
+  </div>
+
+  <div class="card">
+    <label>Когда планируете приехать?</label>
+    <input id="date" type="date">
+  </div>
+
+  <button class="send" id="send-btn" onclick="send()">Отправить заявку</button>
+  <div class="err" id="err"></div>
+  <div class="call">Или позвоните: <a href="tel:+79101730817">+7 (910) 173-08-17</a></div>
+</div>
+
+<div id="done" class="ok" style="display:none">
+  <div class="big">✅</div>
+  <h2>Заявка принята!</h2>
+  <p>Перезвоним и подготовим запчасть к вашему приезду.</p>
+</div>
+</div>
+
+<script>
+// ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
+let photoFiles = [];
+let selectedParts = {};  // { "название": количество }
+
+const plateSel = document.getElementById('plate');
+const partsGrid = document.getElementById('partsGrid');
+const partsCount = document.getElementById('partsCount');
+const toggleBtn = document.getElementById('togglePartsBtn');
+const partsContainer = document.getElementById('partsContainer');
+let partsLoaded = false;
+
+// ===== ЗАГРУЗКА ГОСНОМЕРОВ =====
+async function loadPlates() {
+  let vehicles = [];
+  try {
+    const r = await fetch('/api/public/vehicles');
+    if (r.ok) vehicles = (await r.json()).vehicles || [];
+  } catch (e) {}
+  plateSel.innerHTML =
+    '<option value="">-- Выберите госномер --</option>' +
+    vehicles.map(v =>
+      `<option value="${v.plate}">${v.plate}${v.brand ? ' — ' + v.brand + ' ' + v.model : ''}</option>`
+    ).join('') +
+    '<option value="__other__">Другой (нет в списке)</option>';
+}
+loadPlates();
+
+plateSel.onchange = () => {
+  const other = plateSel.value === '__other__';
+  document.getElementById('plate-manual-wrap').style.display = other ? '' : 'none';
+  if (other) document.getElementById('plate-manual').focus();
+};
+
+// ===== ЗАГРУЗКА ЗАПЧАСТЕЙ =====
+async function loadParts() {
+  if (partsLoaded) return;
+  try {
+    const r = await fetch('/api/public/parts');
+    const data = await r.json();
+    if (!data.parts || data.parts.length === 0) {
+      partsGrid.innerHTML = '<span style="color:#9fb3d1;font-size:13px;">Запчастей пока нет</span>';
+      return;
+    }
+    partsGrid.innerHTML = data.parts.map(p => `
+      <span class="chip part-chip" data-name="${p.name}">
+        ${p.name}
+        <span class="count">0</span>
+        <button class="remove" type="button">×</button>
+      </span>
+    `).join('');
+    // Вешаем обработчики
+    document.querySelectorAll('.part-chip').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.remove')) return;
+        const name = el.dataset.name;
+        selectedParts[name] = (selectedParts[name] || 0) + 1;
+        updatePartUI(el, name);
+      });
+      el.querySelector('.remove')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const name = el.dataset.name;
+        delete selectedParts[name];
+        updatePartUI(el, name);
+      });
+    });
+    partsLoaded = true;
+    updatePartsStats();
+  } catch(e) {
+    console.warn('Ошибка загрузки запчастей', e);
+    partsGrid.innerHTML = '<span style="color:#ff9b9b;font-size:13px;">Ошибка загрузки</span>';
+  }
+}
+
+function updatePartUI(el, name) {
+  const count = selectedParts[name] || 0;
+  const countSpan = el.querySelector('.count');
+  const removeBtn = el.querySelector('.remove');
+  if (count > 0) {
+    countSpan.textContent = count;
+    el.classList.add('on');
+  } else {
+    countSpan.textContent = '0';
+    el.classList.remove('on');
+  }
+  updatePartsStats();
+}
+
+function updatePartsStats() {
+  const total = Object.values(selectedParts).reduce((a,b) => a + b, 0);
+  partsCount.textContent = total;
+}
+
+// ===== ТОГГЛ СПИСКА ЗАПЧАСТЕЙ =====
+toggleBtn.addEventListener('click', () => {
+  if (partsContainer.style.display === 'none') {
+    partsContainer.style.display = 'block';
+    toggleBtn.textContent = 'Скрыть';
+    if (!partsLoaded) loadParts();
+  } else {
+    partsContainer.style.display = 'none';
+    toggleBtn.textContent = 'Показать';
+  }
+});
+
+// ===== ФОТО =====
+document.getElementById('photos').onchange = (e) => {
+  const err = document.getElementById('err'); err.textContent = '';
+  const files = Array.from(e.target.files || []);
+  photoFiles = [];
+  if (files.length > 3) { err.textContent = '⚠️ Максимум 3 фото'; e.target.value = ''; renderPreviews(); return; }
+  for (const f of files) {
+    if (f.size > 5 * 1024 * 1024) {
+      err.textContent = `⚠️ «${f.name}» больше 5 МБ`;
+      e.target.value = ''; renderPreviews(); return;
+    }
+  }
+  photoFiles = files;
+  renderPreviews();
+};
+
+function renderPreviews() {
+  document.getElementById('previews').innerHTML = photoFiles.map(f =>
+    `<span class="prev">📷 ${f.name} (${(f.size / 1024 / 1024).toFixed(1)} МБ)</span>`
+  ).join('');
+}
+
+// ===== ОТПРАВКА ЗАЯВКИ =====
+async function send() {
+  const err = document.getElementById('err'); err.textContent = '';
+  let plate = plateSel.value;
+  if (plate === '__other__') plate = document.getElementById('plate-manual').value.trim().toUpperCase();
+  const phone = document.getElementById('phone').value.trim();
+  const description = document.getElementById('comment').value.trim();
+  const date = document.getElementById('date').value;
+
+  if (!plate || plate.length < 6) { err.textContent = 'Укажите госномер'; return; }
+  if (phone.replace(/\D/g, '').length < 10) { err.textContent = 'Укажите телефон для связи'; return; }
+
+  const fd = new FormData();
+  fd.append('plate', plate);
+  fd.append('phone', phone);
+  fd.append('description', description);
+  fd.append('desired_date', date);
+  fd.append('parts', JSON.stringify(selectedParts));
+  photoFiles.forEach(f => fd.append('photos', f));
+
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true; btn.textContent = 'Отправка...';
+  try {
+    const r = await fetch('/api/public/request', { method: 'POST', body: fd });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) { err.textContent = data.detail || 'Ошибка — позвоните нам'; return; }
+    document.getElementById('form').style.display = 'none';
+    document.getElementById('done').style.display = 'block';
+  } catch (e) {
+    err.textContent = 'Нет связи. Позвоните: +7 (910) 173-08-17';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Отправить заявку';
+  }
+}
+</script>
+</body>
+</html>
